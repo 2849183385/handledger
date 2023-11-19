@@ -1,0 +1,50 @@
+//重复样式
+$bgcolor: #f2f5f7;
+* {
+    box-sizing: border-box;
+}
+
+html{
+    height: 100%;
+    font-size: 14px;
+}
+body{
+    min-height: 100%;
+    background-color: $bgcolor;
+   
+    // color:#f2f5f7;
+}
+
+body,ul,h1,h3,h4,p,dl,dd{
+    padding: 0;
+    margin: 0;
+}
+a{
+    text-decoration: none;
+    color:#333;
+    outline: none;
+}
+img{
+    max-width: 100%;
+    max-height: 100%;
+    vertical-align: middle;
+}
+ul{
+    list-style: none;
+}
+input{
+    outline: none;
+}
+.container{
+    width: 1500px;
+    margin:0 auto;
+    overflow: hidden;
+    
+}
+.right{
+    float: right;
+}
+.left{
+    float: left;
+}
+
