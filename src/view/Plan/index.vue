@@ -116,9 +116,10 @@ function isCompleteTasks(value) {
   isCompleteTask.value = parseInt(value)
   // // 切换任务完成状态
   console.log(typeof isCompleteTask.value);
-  console.log(value);
+  console.log('isCompleteTasks被执行');
 }
 
+/**用来存储被选中要被修改的task-item组件*/
 const taskDetail = ref(null)
 /**用来存储被选中要被修改的task-item组件的ID*/
 const selectTaskId = ref(null)
@@ -131,11 +132,12 @@ const selectTaskId = ref(null)
 const selectedTaskIndex = ref(-1)
 
 function selectTask(index, id) {
+  console.log('selectTask被执行')
   //筛选出描述面板内容
   selectTaskId.value = id;
   taskDetail.value = tasks.value.find(task => task.id === selectTaskId.value)
   console.log(taskDetail.value)
-
+  console.log(completestaus.value)
   //返回被选中任务的索引
   if (selectedTaskIndex.value === index) {
     selectedTaskIndex.value = -1; // 如果已经选中了任务，则取消选中
@@ -145,6 +147,8 @@ function selectTask(index, id) {
     // console.log('selectTask', selectedTaskIndex.value);
   }
 }
+
+
 
 // //描述面板内容  通过Id筛选任务
 // const taskDetail = computed(() => {
@@ -157,6 +161,7 @@ function selectTask(index, id) {
 /**按时间排序,直接修改taskArray这个计算属性不行，
 要通过修改tasks这个taskArray计算属性的依赖，间接修改taskArray*/
 function sortByDate(arr) {
+  console.log('sortByDate被调用');
   const newArr = [...arr];
   newArr.sort((a, b) => {
     if (a.date < b.date) {
@@ -188,6 +193,7 @@ function sortByDate(arr) {
 
 // //按名称排序
 function sortByTitle(arr) {
+  console.log('sortByTitle被调用');
   const newArr = [...arr];
   newArr.sort((a, b) => {
     if (a.title < b.title) {
@@ -204,6 +210,7 @@ function sortByTitle(arr) {
 //处理排序问题
 function handleCommand() {
   const command = arguments[1].attrs.value
+  console.log('handleCommand被调用');
   //使用变量sortArray接受排序后的数据，再将sortArray赋值给taskArray
   switch (command) {
     case 'default':
@@ -300,6 +307,7 @@ const taskFormRef = ref(null)
 const submitForm = () => {
   // 处理任务表单
   console.log(taskForm.value);
+  console.log('submitForm被调用');
   // checkEndTime( taskForm.value.startTime ,taskForm.value.endTime)
   taskFormRef.value.validate(async (valid) => {
     if (valid) {
@@ -316,6 +324,7 @@ const inputRef = ref(null)
 function removeFocus() {
   console.log('removeFocus');
   inputRef.value.blur();
+  console.log('removeFocus被调用');
 }
 
 
@@ -344,9 +353,10 @@ const taskDeleteVisible = ref(false)
  * @param taskId
  */
 function openCompleteVisible(taskId) {
+
   taskCompleteVisible.value = true
   selectTaskId.value = taskId
-  console.log(selectTaskId.value);
+  console.log('openCompleteVisible被调用', selectTaskId.value);
 }
 
 /**
@@ -356,14 +366,14 @@ function completeTask() {
   // 调用后端接口标记任务完成
   tasks.value[selectTaskId.value].isCompleted = '1'
   taskCompleteVisible.value = false
-  console.log(selectTaskId.value)
+  console.log('completeTask被调用', selectTaskId.value)
 }
 
 
 function openDeleteVisible(taskId) {
   taskDeleteVisible.value = true
   selectTaskId.value = taskId
-  console.log(selectTaskId.value);
+  console.log('openDeleteVisible被调用', selectTaskId.value);
 }
 /**
  * 删除任务
@@ -373,7 +383,7 @@ function deleteTask() {
   // 调用后端接口删除任务
   tasks.value[selectTaskId.value].status = '1'
   taskDeleteVisible.value = false
-  console.log(selectTaskId.value);
+  console.log('deleteTask被调用', selectTaskId.value);
 
 }
 
@@ -382,22 +392,24 @@ function fetchTasks() {
   // 调用后端接口获取任务列表
 }
 //处理排序
+// console.log(completestaus.value)
 
 //---------------------------------------------------------------------------------------------------------------
 
-// const completestaus = computed(() => {
-//   if(!taskDetail.value){
-//   //如果截止时间大于当前时间，且任务未完成，则显示红色
-//   if (taskDetail.value.date > formatTimestamp(new Date()) && !taskDetail.value.isCompleted)
-//     return 'danger'
-//   else {
-//     return taskDetail.value.isCompleted ? 'milkgreen' : 'cloudgray'
-//     }
-//   } else {
-//     return null
-//   }
-// })
-
+const completestaus = computed({
+  get: () => {
+    if (!(taskDetail.value == null)) {
+      //如果截止时间大于当前时间，且任务未完成，则显示红色
+      if (taskDetail.value.date > convertToTimestamp(new Date()) && !taskDetail.value.isCompleted)
+        return 'red'
+      else {
+        return taskDetail.value.isCompleted ? 'yellow' : 'green'
+      }
+    } else {
+      return null
+    }
+  }
+})
 </script>
 
 <template>
@@ -509,7 +521,7 @@ function fetchTasks() {
         <div class="task-item " :class="{
           'completed-task': item.isCompleted,
           'task-item-selected': index === selectedTaskIndex,
-          'over-time': (!item.isCompleted) && (item.date < convertToTimestamp(new Date()))
+          'over-time': (!item.isCompleted) && (item.date > convertToTimestamp(new Date()))
         }" v-for="(item, index) in taskArray" :key="index" @click="selectTask(index, item.id)"
           v-show="item.status == 0">
           <el-text class="task-title">{{ item.id }}</el-text>
@@ -580,37 +592,44 @@ function fetchTasks() {
       </div>
     </div>
 
-    <div class="bg-box">
-    <div class="task-detail" v-show="taskDetail">
-      <h3>任务详情</h3>
-      <div class="detail-item">
-        <span>任务名称</span>
-        <el-text> {{ taskDetail && taskDetail.title }}</el-text>
-      </div>
-      <div class="detail-item">
-        <span>状态:</span>
-        <el-text>
-        {{ taskDetail && (taskDetail.isCompleted ? '已完成' : '待完成') }}
-      </el-text></div>
-      <div class="detail-item">
-        <span>任务内容:</span>
-        <div class="task-content">
-          <el-text truncated="true">{{ taskDetail && taskDetail.description }}</el-text>
-       </div>
-      </div>
+    <div class="bg-box" v-show="taskDetail">
+      <el-icon :color="completestaus">
+        <Paperclip />
+      </el-icon>
+      <el-icon>
+        <CollectionTag />
+      </el-icon>
+      <div class="task-detail">
+        <h3>任务详情</h3>
+        <div class="detail-item">
+          <span>任务名称</span>
+          <el-text> {{ taskDetail && taskDetail.title }}</el-text>
+        </div>
+        <div class="detail-item">
+          <span>状态:</span>
+          <el-text>
+            {{ taskDetail && (taskDetail.isCompleted ? '已完成' : '待完成') }}
+          </el-text>
+        </div>
+        <div class="detail-item">
+          <span>任务内容:</span>
+          <div class="task-content">
+            <el-text truncated="true">{{ taskDetail && taskDetail.description }}</el-text>
+          </div>
+        </div>
 
-      <div class="detail-item">
-        <span>开始时间:</span>
-        <el-text>{{ taskDetail && formatTimestamp(taskDetail.date) }}</el-text>
-      </div>
-      <div class="detail-item">
-        <span>截止时间:</span>
-      <el-text>{{ taskDetail && formatTimestamp(taskDetail.date) }}</el-text>
+        <div class="detail-item">
+          <span>开始时间:</span>
+          <el-text>{{ taskDetail && formatTimestamp(taskDetail.date) }}</el-text>
+        </div>
+        <div class="detail-item">
+          <span>截止时间:</span>
+          <el-text>{{ taskDetail && formatTimestamp(taskDetail.date) }}</el-text>
+
+        </div>
+
 
       </div>
-
-
-    </div>
     </div>
 
 
@@ -644,7 +663,7 @@ function fetchTasks() {
     height: 120px;
     display: flex;
     flex-direction: column;
-    margin-right: 50px;
+    margin-right: 30px;
 
     .all-task_item {
       display: flex;
@@ -694,13 +713,14 @@ function fetchTasks() {
   }
 
   .content {
+    margin: 10px 15px;
     display: flex;
     flex-direction: column;
 
     //设置样式
     .setting {
-      margin: 5px 0;
-      width: 800px;
+      margin: 5px 15px;
+      width: 750px;
       height: 30px;
       position: relative;
 
@@ -730,7 +750,8 @@ function fetchTasks() {
 
     //添加任务样式
     .add-task {
-      width: 800px;
+      margin: 0 15px;
+      width: 750px;
       background-color: #fff;
       border-bottom: 1px dotted #e5e5e5;
       border-top: 1px solid #fff;
@@ -756,6 +777,7 @@ function fetchTasks() {
 
     //任务列表样式
     .task-list {
+      margin: 0 15px;
 
       //任务已完成样式
       .completed-task {
@@ -764,7 +786,7 @@ function fetchTasks() {
         border-bottom: 1px dotted #e5e5e5;
         border-top: 1px solid #fff;
         padding: 2px 0;
-        width: 800px;
+        width: 750px;
         background-color: #fff;
 
         .el-button {
@@ -786,7 +808,7 @@ function fetchTasks() {
         border-bottom: 1px dotted #e5e5e5;
         border-top: 1px solid #fff;
         padding: 2px 0;
-        width: 800px;
+        width: 750px;
         background-color: #fff;
         display: flex;
         justify-content: center;
@@ -844,19 +866,19 @@ function fetchTasks() {
   }
 
   //任务细节样式
-  .bg-box{  
+  .bg-box {
     height: 400px;
     max-width: 300px;
     border-radius: 5px;
     background-color: rgb(255, 255, 255);
-    padding:50px 15px 15px;
+    padding: 50px 15px 15px;
     margin: 50px 30px 30px 30px;
     position: relative;
     flex: 1;
-      box-shadow: 14px 14px 20px #cbced1;
+    box-shadow: 14px 14px 20px #cbced1;
 
-    &::before{
-      transform: rotate(3deg);
+    &::before {
+      transform: rotate(1.5deg);
       content: '';
       position: absolute;
       left: 0;
@@ -865,8 +887,9 @@ function fetchTasks() {
       height: 100%;
       background-color: rgb(255, 255, 255);
     }
-    &::after{
-      transform: rotate(1deg);
+
+    &::after {
+      transform: rotate(0.5deg);
       content: '';
       position: absolute;
       left: 0;
@@ -875,26 +898,32 @@ function fetchTasks() {
       height: 100%;
       background-color: rgb(255, 255, 255);
     }
-  
-  .task-detail {
-    background-color: #fff;
-    position: relative;
-    z-index: 1;
-    .detail-item {
-      margin: 10px 5px;
-    }
-    .task-content{
-      margin: 5px ;
-      border-radius: 5px;
-      border:1px gray solid;
-      height: 150px;
-      padding: 12px 5px ;
-    }
-    .el-text{
-      margin-left: 10px;
+
+    .el-icon {
+      z-index: 1;
     }
 
+    .task-detail {
+      background-color: #fff;
+      position: relative;
+      z-index: 1;
+
+      .detail-item {
+        margin: 10px 5px;
+      }
+
+      .task-content {
+        margin: 5px;
+        border-radius: 5px;
+        border: 1px gray solid;
+        height: 150px;
+        padding: 12px 5px;
+      }
+
+      .el-text {
+        margin-left: 10px;
+      }
+
+    }
   }
-}
-}
-</style>
+}</style>
