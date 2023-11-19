@@ -1,6 +1,7 @@
 <script setup >
 import { ref, computed } from 'vue'
 
+
 //-------------------------------------------------------------------------------------------------------------------------------
 /**将时间戳格式的时间，转换成年月日的格式*/
 function formatTimestamp(timestamp) {
@@ -74,12 +75,6 @@ const tasks = ref([
 )
 console.log(tasks.value)
 
-
-// const  timestamp = convertToTimestamp('2021-09-16');
-// console.log(timestamp);
-
-
-
 // 被删除的任务数组
 // const deleteTaskArray = computed(() => {
 //   return tasks.value.filter(task => task.status === '1')
@@ -124,19 +119,37 @@ function isCompleteTasks(value) {
   console.log(value);
 }
 
-//任务被选中高亮逻辑
+const taskDetail = ref(null)
+/**用来存储被选中要被修改的task-item组件的ID*/
+const selectTaskId = ref(null)
+//任务被选中逻辑
+//在任务项中注册一个selectTask事件，任务被点击，则将被点击的任务索引存储到selectedTaskIndex中
+//通过selectedTaskIndex存储被选中的任务的索引
+//判断当前任务是否被选中
+//如果被选中，则高亮
+//如果未被选中，则取消高亮
 const selectedTaskIndex = ref(-1)
-function selectTask(index) {
-  console.log('selectTask', selectedTaskIndex.value);
+
+function selectTask(index, id) {
+  //筛选出描述面板内容
+  selectTaskId.value = id;
+  taskDetail.value = tasks.value.find(task => task.id === selectTaskId.value)
+  console.log(taskDetail.value)
+
+  //返回被选中任务的索引
   if (selectedTaskIndex.value === index) {
     selectedTaskIndex.value = -1; // 如果已经选中了任务，则取消选中
-    console.log('selectTask', selectedTaskIndex.value);
+    // console.log('selectTask', selectedTaskIndex.value);
   } else {
     selectedTaskIndex.value = index; // 选择被点击的任务
-    console.log('selectTask', selectedTaskIndex.value);
+    // console.log('selectTask', selectedTaskIndex.value);
   }
 }
 
+// //描述面板内容  通过Id筛选任务
+// const taskDetail = computed(() => {
+//   return tasks.value.find(task => task.id === selectTaskId.value)
+// })
 
 
 //-------------------------------------------------------------------------------------------------------------------------------
@@ -222,8 +235,6 @@ function handleCommand() {
 //   })
 // })
 
-
-
 //-------------------------------------------------------------------------------------------
 // 全选反全选功能
 // const selectedTasks = ref([])
@@ -267,7 +278,11 @@ function handleCommand() {
 
 //-------------------------------------------------------------------------------------------
 //添加任务视图逻辑
-const dialogVisible = ref(false)
+
+
+
+
+
 //任务表单
 const taskForm = ref({
   taskName: '',
@@ -316,18 +331,27 @@ function editTask(task) {
   // 调用后端接口编辑任务
 }
 
+
+
+
+
+const dialogVisible = ref(false)
 const taskCompleteVisible = ref(false)
 const taskDeleteVisible = ref(false)
 
-/**用来存储被选中要被修改的task-item组件的ID*/
-const selectTaskId = ref(null)
-
+/**
+ * 打开任务完成的弹窗
+ * @param taskId
+ */
 function openCompleteVisible(taskId) {
   taskCompleteVisible.value = true
   selectTaskId.value = taskId
   console.log(selectTaskId.value);
 }
 
+/**
+ * 完成任务
+ */
 function completeTask() {
   // 调用后端接口标记任务完成
   tasks.value[selectTaskId.value].isCompleted = '1'
@@ -335,11 +359,16 @@ function completeTask() {
   console.log(selectTaskId.value)
 }
 
+
 function openDeleteVisible(taskId) {
   taskDeleteVisible.value = true
   selectTaskId.value = taskId
   console.log(selectTaskId.value);
 }
+/**
+ * 删除任务
+ * @param taskId
+ */
 function deleteTask() {
   // 调用后端接口删除任务
   tasks.value[selectTaskId.value].status = '1'
@@ -348,7 +377,6 @@ function deleteTask() {
 
 }
 
-console.log(convertToTimestamp(new Date()))
 // eslint-disable-next-line no-unused-vars
 function fetchTasks() {
   // 调用后端接口获取任务列表
@@ -357,11 +385,18 @@ function fetchTasks() {
 
 //---------------------------------------------------------------------------------------------------------------
 
-
-
-
-
-
+// const completestaus = computed(() => {
+//   if(!taskDetail.value){
+//   //如果截止时间大于当前时间，且任务未完成，则显示红色
+//   if (taskDetail.value.date > formatTimestamp(new Date()) && !taskDetail.value.isCompleted)
+//     return 'danger'
+//   else {
+//     return taskDetail.value.isCompleted ? 'milkgreen' : 'cloudgray'
+//     }
+//   } else {
+//     return null
+//   }
+// })
 
 </script>
 
@@ -475,7 +510,8 @@ function fetchTasks() {
           'completed-task': item.isCompleted,
           'task-item-selected': index === selectedTaskIndex,
           'over-time': (!item.isCompleted) && (item.date < convertToTimestamp(new Date()))
-        }" v-for="(item, index) in taskArray" :key="index" @click="selectTask(index)" v-show="item.status == 0">
+        }" v-for="(item, index) in taskArray" :key="index" @click="selectTask(index, item.id)"
+          v-show="item.status == 0">
           <el-text class="task-title">{{ item.id }}</el-text>
           <el-text class="task-content" truncated="true">{{ item.description }}</el-text>
           <el-text class="task-time">{{ formatTimestamp(item.date) }}</el-text>
@@ -509,7 +545,7 @@ function fetchTasks() {
 
 
 
-       <div class="alter-task-staus">
+      <div class="alter-task-staus">
         <!-- 完成任务确认对话框 -->
         <el-dialog v-model="taskCompleteVisible" y width="15%" center :modal="false" :lock-scroll="false"
           :append-to-bod="true">
@@ -544,17 +580,38 @@ function fetchTasks() {
       </div>
     </div>
 
-   <div class="task-detail">
-    <el-descriptions title="User Info" size="large"  direction="vertical" column="1">
-      <el-descriptions-item label="任务名称">kooriookami</el-descriptions-item>
-      <el-descriptions-item label="任务内容">
-        <el-input type="textarea" :rows="6" prefix-icon="el-icon-edit"></el-input>
-      </el-descriptions-item>
-      <el-descriptions-item label="任务时间">Suzhou</el-descriptions-item>
-      <el-descriptions-item label="Address"></el-descriptions-item
-      >
-    </el-descriptions>
-   </div>
+    <div class="bg-box">
+    <div class="task-detail" v-show="taskDetail">
+      <h3>任务详情</h3>
+      <div class="detail-item">
+        <span>任务名称</span>
+        <el-text> {{ taskDetail && taskDetail.title }}</el-text>
+      </div>
+      <div class="detail-item">
+        <span>状态:</span>
+        <el-text>
+        {{ taskDetail && (taskDetail.isCompleted ? '已完成' : '待完成') }}
+      </el-text></div>
+      <div class="detail-item">
+        <span>任务内容:</span>
+        <div class="task-content">
+          <el-text truncated="true">{{ taskDetail && taskDetail.description }}</el-text>
+       </div>
+      </div>
+
+      <div class="detail-item">
+        <span>开始时间:</span>
+        <el-text>{{ taskDetail && formatTimestamp(taskDetail.date) }}</el-text>
+      </div>
+      <div class="detail-item">
+        <span>截止时间:</span>
+      <el-text>{{ taskDetail && formatTimestamp(taskDetail.date) }}</el-text>
+
+      </div>
+
+
+    </div>
+    </div>
 
 
 
@@ -581,7 +638,7 @@ function fetchTasks() {
     --el-calendar-cell-width: 35px;
   }
 
-  
+
   .all-task {
     margin-left: 15px;
     height: 120px;
@@ -670,6 +727,7 @@ function fetchTasks() {
 
 
     }
+
     //添加任务样式
     .add-task {
       width: 800px;
@@ -784,12 +842,59 @@ function fetchTasks() {
 
     }
   }
+
   //任务细节样式
-  .task-detail{
-    padding: 15px;
-    margin: 50px 30px 0 30px ;
+  .bg-box{  
+    height: 400px;
+    max-width: 300px;
+    border-radius: 5px;
+    background-color: rgb(255, 255, 255);
+    padding:50px 15px 15px;
+    margin: 50px 30px 30px 30px;
+    position: relative;
     flex: 1;
+      box-shadow: 14px 14px 20px #cbced1;
+
+    &::before{
+      transform: rotate(3deg);
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgb(255, 255, 255);
+    }
+    &::after{
+      transform: rotate(1deg);
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgb(255, 255, 255);
+    }
+  
+  .task-detail {
     background-color: #fff;
+    position: relative;
+    z-index: 1;
+    .detail-item {
+      margin: 10px 5px;
+    }
+    .task-content{
+      margin: 5px ;
+      border-radius: 5px;
+      border:1px gray solid;
+      height: 150px;
+      padding: 12px 5px ;
+    }
+    .el-text{
+      margin-left: 10px;
+    }
+
   }
+}
 }
 </style>

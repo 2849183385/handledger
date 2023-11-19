@@ -44,7 +44,7 @@
 .footer {
 
     a {
-        margin: 10px 0;
+        margin: 5px 0;
         display: block;
         font-size: 14px;
     }
