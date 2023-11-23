@@ -71,9 +71,10 @@ const handleAreaChange = (value) => {
 }
 
 // 提交前统一校验
+const formRef = ref(null)
 const onSubmit = () => {
     console.log(form)
-     form.value.validate(async(valid) => {
+     formRef.value.validate(async(valid) => {
         if (valid) {
             // 表单验证通过，提交表单
            await this.submitToServer();

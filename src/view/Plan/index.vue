@@ -1,5 +1,13 @@
 <script setup >
-import { ref, computed } from 'vue'
+
+// import router from '@/router';
+import { ref, computed ,} from 'vue'
+
+// onMounted(() => {
+//   router.
+//   console.log('onMounted被调用');
+// })
+
 
 
 //-------------------------------------------------------------------------------------------------------------------------------
@@ -18,8 +26,6 @@ function convertToTimestamp(dateString) {
   const timestamp = date.getTime();
   return timestamp;
 }
-
-
 
 
 const radio = ref('0')
@@ -75,16 +81,31 @@ const tasks = ref([
 )
 console.log(tasks.value)
 
-// 被删除的任务数组
+
+
+
+// // 被删除的任务数组
 // const deleteTaskArray = computed(() => {
 //   return tasks.value.filter(task => task.status === '1')
 // })
+
 
 /** 含有未被删除的任务数组 缓存作用*/
 const taskArrays = computed(() => {
   return tasks.value.filter(task => task.status == 0)
 })
 console.log(taskArrays.value)
+
+// 统计isCompleted为1的数量
+const isCompletedCount = computed({
+  get: () => { 
+  return (tasks.value.filter(task => task.status === 0)).filter(task => task.isCompleted === 1).length;
+  },
+}) 
+// 统计status为1的数量
+
+
+
 
 //当前在任务未完成页面时，返回全部列表，当前在任务完成页面时，返回已完成任务组成的数组
 /**根isCompleteTask状态返回已完成或未完成任务的数据，用来渲染task-item组件*/
@@ -363,10 +384,13 @@ function openCompleteVisible(taskId) {
  * 完成任务
  */
 function completeTask() {
+  console.log('isCompletedCount:',isCompletedCount);
   // 调用后端接口标记任务完成
   tasks.value[selectTaskId.value].isCompleted = '1'
   taskCompleteVisible.value = false
   console.log('completeTask被调用', selectTaskId.value)
+  console.log(taskArrays.value)
+  console.log('isCompletedCount:',isCompletedCount);
 }
 
 
@@ -410,6 +434,9 @@ const completestaus = computed({
     }
   }
 })
+
+
+
 </script>
 
 <template>
@@ -421,7 +448,7 @@ const completestaus = computed({
       <div class="all-task_item">
         <ul>
           <li style="">
-            <span>1</span>
+            <span>{{ taskArrays && taskArrays.length}}</span>
             <span>task</span>
           </li>
           <li style="background-color: #e1a14d;">
@@ -433,7 +460,7 @@ const completestaus = computed({
             <span>逾期</span>
           </li>
           <li>
-            <span>1</span>
+            <span>{{ isCompletedCount}}</span>
             <span>已完成</span>
           </li>
         </ul>
@@ -594,9 +621,6 @@ const completestaus = computed({
 
     <div class="bg-box" v-show="taskDetail">
       <el-icon :color="completestaus">
-        <Paperclip />
-      </el-icon>
-      <el-icon>
         <CollectionTag />
       </el-icon>
       <div class="task-detail">
@@ -900,7 +924,13 @@ const completestaus = computed({
     }
 
     .el-icon {
-      z-index: 1;
+     
+      z-index: 2;
+      position: absolute;
+      background-color: #ffffff00;
+      top: -5px;
+      right: 15px;
+      font-size: 50px;
     }
 
     .task-detail {
@@ -926,4 +956,5 @@ const completestaus = computed({
 
     }
   }
-}</style>
+}
+</style>

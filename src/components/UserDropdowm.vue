@@ -1,9 +1,12 @@
 <script setup>
 import { useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus'
-const Router = useRouter()
+import { useUserStore } from '@/stores/userStore';
 
+const Router = useRouter()
+const userStore=useUserStore()
 const confirmEvent = () => {
+    userStore.removeToken()
     Router.push('/login')
     ElMessage({
         type: 'success',

@@ -1,26 +1,28 @@
 <script  setup>
 import { ref, watch } from 'vue'
 import { useRouter } from 'vue-router';
-// import {ElMessage} from 'element-plus'
+import { useUserStore } from '@/stores/userStore'
+import {  registerAPI } from "@/apis/user";
+import { ElMessage } from 'element-plus'
 // import { FormInstance, FormRules } from 'element-plus'
 
 const size = ref('large')
 const Router = useRouter()
 
 
-const IsLogin = ref(true)
+const isLogin = ref(true)
 function toggleLayout() {
-  IsLogin.value = !IsLogin.value
+  isLogin.value = !isLogin.value
 }
 //表单对象
 const form = ref({
-  account: '',
-  password: "",
+  account: 'taylor',
+  password: "23648112+a",
+  confirmpassword: '23648112+a'
 })
-
 // const {account,password} = form.value
 //校验规则对象
-// const PassValidarte = '/^\S*(?=\S{6,})(?=\S*\d)(?=\S*[A-Z])(?=\S*[a-z])(?=\S*[!@#$%^&*? ])\S*$/'
+// const PassValidarte = '/^(?![a-zA-Z]+$)(?![A-Z0-9]+$)(?![A-Z\W_!@#$%^&*`~()-+=]+$)(?![a-z0-9]+$)(?![a-z\W_!@#$%^&*`~()-+=]+$)(?![0-9\W_!@#$%^&*`~()-+=]+$)[a-zA-Z0-9\W_!@#$%^&*`~()-+=]/,'
 const rules = ({
   account: [
     { required: true, message: '请输入账号', trigger: 'blur' },
@@ -29,33 +31,74 @@ const rules = ({
   //密码验证
   password: [
     { required: true, message: '密码不能为空', trigger: 'blur' },
-    { min: 6, max: 12, required: true, message: '密码应不少于6位，包括至少1个大写字母，1个小写字母，1个数字，1个特殊字符', trigger: 'blur' }
-
+    {
+      pattern: /^(?![a-zA-Z]+$)(?![A-Z0-9]+$)(?![A-Z\W_!@#$%^&*`~()-+=]+$)(?![a-z0-9]+$)(?![a-z\W_!@#$%^&*`~()-+=]+$)(?![0-9\W_!@#$%^&*`~()-+=]+$)[a-zA-Z0-9\W_!@#$%^&*`~()-+=]/,
+      required: true,
+      message: '密码应当包含大小写字母，数字，特殊符号中任意三项', trigger: 'blur'
+    }
+  ],
+  confirmpassword: [
+    { required: true, message: '请再次输入密码', trigger: 'blur' },
+    {
+      pattern: /^(?![a-zA-Z]+$)(?![A-Z0-9]+$)(?![A-Z\W_!@#$%^&*`~()-+=]+$)(?![a-z0-9]+$)(?![a-z\W_!@#$%^&*`~()-+=]+$)(?![0-9\W_!@#$%^&*`~()-+=]+$)[a-zA-Z0-9\W_!@#$%^&*`~()-+=]/,
+      message: '密码应当包含大小写字母，数字，特殊符号中任意三项',
+      trigger: 'blur'
+    },
+    {
+      validator: (rule, value, callback) => {
+        if (value !== form.value.password) {
+          callback(new Error('两次输入密码不一致！'))
+        } else {
+          callback()
+        }
+      },
+      trigger: 'blur'
+    }
   ]
 })
 
-// const Fillin = ref('false')
-
-watch(form, (value) => {
-
-  console.log(value);
-
-})
 
 //登录前的统一校验
 const formRef = ref(null)
-const doLogin = () => {
-  formRef.value.validate(async (valid) => {
+const userStore = useUserStore()
+const doLogin = async () => {
+  const { account, password } = form.value
+  //表单中ref绑定的时formRef，所以formRef是表单这个标签对象，进行验证时，对表单进行验证，而不是对form进行验证
+  await formRef.value.validate(async (valid) => {
     // valid所有验证都通过才为true
     if (valid) {
-      //ToDo Login
-      //数据提交给服务器进行对比登录
-      console.log(form.value)
+      //ToDo Login 
+       await userStore.getUserInfo({ account, password })
+      ElMessage({
+        type:'success',
+        message: '登录成功'
+      })
       // Router.replace('/')
       Router.push('/')
     }
   })
 }
+
+const doRegister = async () => {
+  const { account, password } = form.value
+   await formRef.value.validate(async (valid) => {
+    if (valid) {
+      await registerAPI({ account, password })
+      ElMessage({
+        type:'success',
+        message: '注册成功'
+      })
+      toggleLayout()
+    }
+  })
+}
+watch(isLogin, () => {
+  form.value = {
+    account: '',
+    password: "",
+    confirmpassword: ''
+  }
+})
 </script>
 <template>
   <div class="container">
@@ -68,7 +111,7 @@ const doLogin = () => {
     <div class="main">
 
       <!-- 登录表单 -->
-      <div class="form" v-if="IsLogin">
+      <div class="form" v-if="isLogin">
         <h1>Hand Ledger</h1>
         <el-form hide-required-asterisk="true" ref="formRef" :model="form" class="demo-form-inline"
           :label-position="labelPosition" label-width="55px" :size="size" :rules="rules" scroll-to-error="true"
@@ -79,7 +122,7 @@ const doLogin = () => {
             <el-input v-model="form.account" placeholder="请输入账号" clearable />
           </el-form-item>
           <el-form-item label="密码" prop="password">
-            <el-input v-model="form.password" placeholder="请输入密码(不小于6位，区分大小写)" show-password clearable />
+            <el-input v-model="form.password" placeholder="密码(大小写字母，数字，特殊符号中任意三项)" show-password clearable />
           </el-form-item>
           <div class="toggle">
             <span @click="toggleLayout">没有账号？点击注册</span>
@@ -96,17 +139,16 @@ const doLogin = () => {
           <el-form-item prop="account" label="账号">
             <el-input v-model="form.account" placeholder="请输入账号" clearable />
           </el-form-item>
-
           <el-form-item label="密码" prop="password">
-            <el-input v-model="form.password" placeholder="请输入密码(不小于6位，区分大小写)" show-password clearable />
+            <el-input v-model="form.password" placeholder="密码应当包含大小写字母，数字，特殊符号中任意三项" show-password clearable />
           </el-form-item>
-          <el-form-item label="确认密码" prop="password">
-            <el-input v-model="form.confirmpassword" placeholder="请再次输入密码(不小于6位，区分大小写)" show-password clearable />
+          <el-form-item label="确认密码" prop="confirmpassword">
+            <el-input v-model="form.confirmpassword" placeholder="请再次输入密码(密码应当包含大小写字母，数字，特殊符号中任意三项)" show-password clearable />
           </el-form-item>
           <div class="toggle">
             <span @click="toggleLayout">已有账号？登录</span>
           </div>
-          <el-button class="subBtn" type="primary" @click="doLogin">注册</el-button>
+          <el-button class="subBtn" type="primary" @click="doRegister">注册</el-button>
         </el-form>
       </div>
 
@@ -166,7 +208,8 @@ const doLogin = () => {
       align-items: center;
       //添加阴影，鼠标移动到后，阴影消失
       box-shadow: 14px 14px 20px #cbced1, -14px -14px 20px white;
- transition: 0.5s;
+      transition: 0.5s;
+
       &:hover {
         box-shadow: none;
       }
@@ -250,4 +293,5 @@ h1 {
   text-align: center;
   line-height: 50px;
   border-radius: 5px;
-}</style>
+}
+</style>
