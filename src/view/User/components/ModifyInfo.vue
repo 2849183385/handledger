@@ -1,12 +1,15 @@
 <script setup>
-import { ref } from 'vue'
-import { onMounted } from 'vue'
+import { ref,onMounted, watch,toRefs } from 'vue'
 import areaData from '@/assets/area/province-element-min.json'
-
+import { updateUserInfoAPI } from '@/apis/user'
+import { useUserStore } from '@/stores/userStore';
+import { storeToRefs } from 'pinia';
+const userStore = useUserStore()
+const { userInfo} = storeToRefs(userStore)
+const { account, user_sex, nick_name, user_region, user_tel, user_email, user_brithday  }=storeToRefs(userInfo)
 const areaDataRef = ref(null)
 // console.log(areaData)
-
-
+// const reactiveUserInfo = reactive(userInfo)
 //地区数据
 onMounted(() => {
     areaDataRef.value = areaData && areaData.map(province => {
@@ -29,58 +32,83 @@ onMounted(() => {
         }
     })
 })
-
-
+watch(() => userStore.userInfo, (newVal) => {
+    form.value = newVal
+})
+// computed({
+//     convertedRegion() {
+//         if (Array.isArray(this.form.value.user_region)) {
+//             return this.form.value.user_region.join(',');
+//         } else {
+//             return '';
+//         }
+//     }
+// }) 
 const dialogFormVisible = ref(false)
 // const formLabelWidth = '140px'
 
-const form = ref({
-    uid: '123456',
-    username: '范小勤',
-    gender: '男',
-    email: '1955454545@qq.com',
-    phone: '166666666',
-    region: ["江西省", "吉安市"],
-    brithday: 'Thu Nov 23 2023 00:00:00 GMT+0800',
-})
+const form = toRefs(
+    {
+    account ,
+    user_sex ,
+    nick_name ,
+    user_region ,
+    user_tel ,
+    user_email ,
+    user_brithday ,
+}
+)
 
+console.log(form.value)
 const rules = ({
-    username: [
-        { required: true, message: '请输入用户名', trigger: 'blur' }
+    nick_name: [{ required: true, message: '请输入昵称', trigger: 'blur' }],
+    user_sex: [
+        { type: 'number',required: true, message: '请选择性别', trigger: 'blur' }
     ],
-    gender: [
-        { required: true, message: '请选择性别', trigger: 'change' }
+    user_region: [
+        { required: true, message: '请选择籍贯', trigger: 'blur' }
     ],
-    region: [
-        { type: 'array', required: true, message: '请选择籍贯', trigger: 'change' }
-    ],
-    phone: [
+    user_tel: [
         { required: true, message: '请输入联系方式', trigger: 'blur' },
         { pattern: /^\d{11}$/, message: '联系方式需为11位数字', trigger: 'blur' }
     ],
-    email: [
+    user_email: [
         { required: true, message: '请输入邮箱', trigger: 'blur' },
-        { type: 'email', message: '请输入正确的邮箱地址', trigger: ['blur', 'change'] }
+        { type: 'email', message: '请输入正确的邮箱地址', trigger:  'blur' }
     ],
-    date: [
-        { required: true, message: '请选择出生日期', trigger: 'change' }
+    user_brithday: [
+        { required: true, message: '请选择出生日期', trigger: 'blur' }
     ]
 })
-const handleAreaChange = (value) => {
-    console.log(value)
-}
+// const handleAreaChange = (value) => {
+//     console.log(value)
+// }
 
 // 提交前统一校验
 const formRef = ref(null)
-const onSubmit = () => {
+const onSubmit = async () => {
     console.log(form)
      formRef.value.validate(async(valid) => {
         if (valid) {
             // 表单验证通过，提交表单
-           await this.submitToServer();
+            //将地区数据转换为字符串
+            form.value.user_region = JSON.stringify(form.value.user_region)
+            //将时间格式去掉时分秒
+            // form.value.user_brithday = moment(form.value.user_brithday).format('YYYY-MM-DD')
+            // console.log(form.value.user_brithday)
+            // form.value. = form.value.user_sex.toString()
+            console.log( form.value.user_region)
+            const res = await updateUserInfoAPI(form.value);
+            // await userStore.getUserInfo(form.value.account)
+            //提交修改后关闭弹窗
+            if(res) await userStore.getUserInfo(form.value.account)
+           
+            dialogFormVisible.value=false
+            console.log(form.value)
+           console.log(res)
         } else {
             // 表单验证不通过
-            this.$message.error('表单验证不通过');
+            // this.$message.error('表单验证不通过');
         }
     });
 }
@@ -93,30 +121,35 @@ const onSubmit = () => {
             修改资料
         </el-button>
     </div>
-    <el-dialog v-model="dialogFormVisible" title="用户信息" draggable center close-on-click-modal="false" width="500px">
-        <el-form :model="form" label-width="120px" :rules="rules">
-            <el-form-item label="用户名" prop="username">
-                <el-input v-model="form.username" />
+    <el-dialog v-model="dialogFormVisible" title="用户信息" draggable center :close-on-click-modal="false" width="500px">
+        <el-form :hide-required-asterisk="true" 
+        :model="form" label-width="120px" :rules="rules" ref="formRef">
+            <el-form-item label="昵称" prop="nick_name">
+                <el-input v-model="form.nick_name" type="text" />
             </el-form-item>
-            <el-form-item label="性别">
-                <el-radio-group v-model="form.gender" prop="gender">
-                    <el-radio label="男"></el-radio>
-                    <el-radio label="女"></el-radio>
+            <el-form-item label="性别" prop="user_sex">
+                <el-radio-group v-model="form.user_sex" >
+                    <el-radio :label='0'>男</el-radio>
+                    <el-radio :label='1'>女</el-radio>
                 </el-radio-group>
             </el-form-item>
-            <el-form-item label="籍贯" prop="region">
-                <el-cascader v-model="form.region" v-if="areaDataRef" :options="areaDataRef" :props="props1"
-                    @change="handleAreaChange" clearable></el-cascader>
+            <el-form-item label="籍贯" prop="user_region">
+                <el-cascader v-model="form.user_region" v-if="areaDataRef" 
+                :options="areaDataRef"
+                   clearable>
+                </el-cascader>
             </el-form-item>
-            <el-form-item label="联系方式" prop="phone">
-                <el-input v-model="form.phone" type="tel" />
+            <el-form-item label="联系方式" prop="user_tel">
+                <el-input v-model="form.user_tel" type="tel" />
             </el-form-item>
-            <el-form-item label="邮箱" prop="email">
-                <el-input v-model="form.email" type="email" />
+            <el-form-item label="邮箱" prop="user_email">
+                <el-input v-model="form.user_email" type="email" />
             </el-form-item>
-            <el-form-item label="出生日期" prop="date">
+            <el-form-item label="出生日期" prop="user_brithday">
                 <el-col :span="11">
-                    <el-date-picker v-model="form.date" type="brithday" placeholder="Pick a date" style="width: 100%" />
+                    <el-date-picker v-model="form.user_brithday" type="date" placeholder="Pick a date" 
+                     format="YYYY/MM/DD"
+            value-format="YYYY-MM-DD" style="width: 100%" />
                 </el-col>
             </el-form-item>
         </el-form>

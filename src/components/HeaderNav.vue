@@ -1,8 +1,8 @@
 <script setup>
 import UserDropdowm from '@/components/UserDropdowm.vue';
 import SearchInput from '@/components/SearchInput.vue';
-
-
+import { useUserStore } from '@/stores/userStore'
+const userStore = useUserStore();
 </script>
 
 <template>
@@ -24,7 +24,7 @@ import SearchInput from '@/components/SearchInput.vue';
         <SearchInput></SearchInput>
         <div class="user-box">
             <UserDropdowm></UserDropdowm>
-            <span class="user-name">接受，≠我同意</span>
+            <span class="user-name">{{ userStore.userInfo.account }}</span>
         </div>
     </div>
 </template>

@@ -1,20 +1,21 @@
 <script setup >
-import { reactive } from 'vue'
+// import { reactive } from 'vue'
 import ModifyInfo from './ModifyInfo.vue'
-
+import { useUserStore } from '@/stores/userStore'
+const {userInfo} = useUserStore()
 
 
 //用户信息表单
-const userInfo = reactive({
-  uid: '123456',
-  username: '范小勤',
-  gender: '男',
-  brithday: '12-15',
-  email: '',
-  phone: '166666666',
-  text: 'vocal',
-  address: '江西吉安',
-})
+// const userInfo = reactive({
+//   uid: '123456',
+//   username: '范小勤',
+//   gender: '男',
+//   brithday: '12-15',
+//   email: '',
+//   phone: '166666666',
+//   text: 'vocal',
+//   address: '江西吉安',
+// })
 
 </script>
 
@@ -50,42 +51,42 @@ const userInfo = reactive({
       <div class="uid">
         <div class="info-item ">
           <label>Uid：</label>
-          <span>{{ userInfo.uid }}</span>
+          <span>{{ userInfo.user_id }}</span>
         </div>
 
         <div class="info-item">
           <label>用户名：</label>
-          <span>{{ userInfo.username }}</span>
+          <span>{{ userInfo.account}}</span>
         </div>
 
         <div class="info-item">
           <label>性别：</label>
-          <span>{{ userInfo.gender }}</span>
+          <span>{{ userInfo.user_sex?'女':'男' }}</span>
         </div>
 
         <div class="info-item">
           <label>生日：</label>
-          <span>{{ userInfo.brithday }}</span>
+          <span>{{ userInfo.user_brithday }}</span>
         </div>
 
         <div class="info-item">
           <label>昵称：</label>
-          <span>{{ userInfo.nickname }}</span>
+          <span>{{ userInfo.nick_name }}</span>
         </div>
 
         <div class="info-item">
           <label>邮箱：</label>
-          <span>{{ userInfo.email }}</span>
+          <span>{{ userInfo.user_email }}</span>
         </div>
 
         <div class="info-item">
           <label>手机：</label>
-          <span>{{ userInfo.phone }}</span>
+          <span>{{ userInfo.user_tel }}</span>
         </div>
 
          <div class="info-item">
             <label>籍贯：</label>
-            <span>{{ userInfo.address }}</span>
+            <span>{{ userInfo.user_region[0] }} - {{ userInfo.user_region[1] }}</span>
           </div>
 
         <el-input v-model="textarea2" :rows="5" type="textarea" :placeholder='userInfo.text' style="margin-top: 25px;"

@@ -10,7 +10,7 @@
       <li>
         222
       </li>
-      <li><i class="iconfont icon-yonghu">用户</i></li>
+      <li><i class="iconfont icon-yonghu">{{user}}</i></li>
     </ul>
   </div>
 </div>

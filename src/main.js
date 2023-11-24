@@ -1,6 +1,7 @@
 import App from './App.vue'
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
+import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
 import '@/styles/common.scss'
 import '@/assets/fonts/iconfont.css'
 import router from './router'
@@ -18,9 +19,10 @@ for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
     app.component(key, component)
 }
 
-
-
-app.use(createPinia()).use(ElementPlus, {
+const pinia = createPinia()
+//注册持久化插件
+pinia.use(piniaPluginPersistedstate)
+app.use(pinia).use(ElementPlus, {
     locale: zhCn,
 })
 app.use(router)

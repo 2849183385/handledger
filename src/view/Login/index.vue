@@ -9,7 +9,6 @@ import { ElMessage } from 'element-plus'
 const size = ref('large')
 const Router = useRouter()
 
-
 const isLogin = ref(true)
 function toggleLayout() {
   isLogin.value = !isLogin.value
@@ -68,7 +67,8 @@ const doLogin = async () => {
     // valid所有验证都通过才为true
     if (valid) {
       //ToDo Login 
-       await userStore.getUserInfo({ account, password })
+      await userStore.getToken({ account, password })
+      await userStore.getUserInfo(account)
       ElMessage({
         type:'success',
         message: '登录成功'

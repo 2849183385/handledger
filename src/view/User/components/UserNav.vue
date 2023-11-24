@@ -1,5 +1,7 @@
 <script setup >
+import { useUserStore } from '@/stores/userStore'
 
+const { userInfo } = useUserStore()
 </script>
 
 <template>
@@ -16,7 +18,7 @@
           </el-avatar>
         </div>
         <div class="user-basic">
-              <span>Taylor</span>
+              <span>{{ userInfo.nick_name }}</span>
               <div class="user-signature">
             <input id="h-sign" type="text" placeholder="接受，≠我同意" maxlength="60" class="space_input">
           </div>

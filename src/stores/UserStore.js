@@ -1,18 +1,23 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
-import { loginAPI } from "@/apis/user";
+import { loginAPI ,getUserInfoAPI} from "@/apis/user";
 
 export const useUserStore = defineStore("user", () => {
     // 1. 定义管理用户数据的state
     const userInfo = ref({})
-    const getUserInfo = async ({account,password}) => {
+    const getUserInfo = async (account) => {
+        const res = await getUserInfoAPI(account)
+        // console.log(res.data.data)
+        res.data.data.user_region =JSON.parse(res.data.data.user_region)
+        userInfo.value = res.data.data
+    }
+    const getToken = async ({ account, password }) => {
         const res = await loginAPI({ account, password })
-        userInfo.value = res.data.data[0]
         token.value = res.data.token
     }
-    const setUserInfo = (obj) => {
-        userInfo.value = obj
-    }
+    // const setUserInfo = (obj) => {
+    //     userInfo.value = obj
+    // }
     const token = ref("")
     //设置token
     const removeToken = () => {
@@ -20,11 +25,12 @@ export const useUserStore = defineStore("user", () => {
     }
     return {
         token,
+        getToken,
         removeToken,
         userInfo,
         getUserInfo,
-        setUserInfo
+        // setUserInfo
     }
 }, {
-    persisted: true
+    persist: true
 })
