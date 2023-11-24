@@ -602,7 +602,7 @@ const completestaus = computed({
         </el-dialog>
 
         <!-- 删除任务对话框 -->
-        <el-dialog v-model="taskDeleteVisible" append-to-body width="15%" center :modal="false" :lock-scroll="false"
+        <el-dialog v-model="taskDeleteVisible"  width="15%" center :modal="false" :lock-scroll="false"
           :append-to-bod="true">
           <template #default>
             <p style="text-align: center;">删除任务？</p>
@@ -680,7 +680,6 @@ const completestaus = computed({
     top: 160px;
     --el-calendar-cell-width: 35px;
   }
-
 
   .all-task {
     margin-left: 15px;

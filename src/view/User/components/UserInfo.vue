@@ -1,10 +1,11 @@
 <script setup >
 // import { reactive } from 'vue'
 import ModifyInfo from './ModifyInfo.vue'
+import { storeToRefs } from 'pinia';
 import { useUserStore } from '@/stores/userStore'
-const {userInfo} = useUserStore()
-
-
+const userStore = useUserStore()
+const { userInfo } = storeToRefs(userStore)
+console.log(userInfo)
 //用户信息表单
 // const userInfo = reactive({
 //   uid: '123456',
@@ -55,13 +56,16 @@ const {userInfo} = useUserStore()
         </div>
 
         <div class="info-item">
-          <label>用户名：</label>
-          <span>{{ userInfo.account}}</span>
+          <label>账号：</label>
+          <span>{{ userInfo.account }}</span>
         </div>
-
+        <div class="info-item">
+          <label>昵称：</label>
+          <span>{{ userInfo.nick_name }}</span>
+        </div>
         <div class="info-item">
           <label>性别：</label>
-          <span>{{ userInfo.user_sex?'女':'男' }}</span>
+          <span>{{ userInfo.user_sex ? '女' : '男' }}</span>
         </div>
 
         <div class="info-item">
@@ -69,10 +73,7 @@ const {userInfo} = useUserStore()
           <span>{{ userInfo.user_brithday }}</span>
         </div>
 
-        <div class="info-item">
-          <label>昵称：</label>
-          <span>{{ userInfo.nick_name }}</span>
-        </div>
+
 
         <div class="info-item">
           <label>邮箱：</label>
@@ -80,16 +81,16 @@ const {userInfo} = useUserStore()
         </div>
 
         <div class="info-item">
-          <label>手机：</label>
+          <label>手机号：</label>
           <span>{{ userInfo.user_tel }}</span>
         </div>
 
-         <div class="info-item">
-            <label>籍贯：</label>
-            <span>{{ userInfo.user_region[0] }} - {{ userInfo.user_region[1] }}</span>
-          </div>
+        <div class="info-item">
+          <label>籍贯：</label>
+          <span>{{ userInfo.user_region[0] }} - {{ userInfo.user_region[1] }}</span>
+        </div>
 
-        <el-input v-model="textarea2" :rows="5" type="textarea" :placeholder='userInfo.text' style="margin-top: 25px;"
+        <el-input  :rows="5" resize='none' type="textarea" :placeholder='userInfo.user_motto' style="margin-top: 25px;" :disabled="true"
           show-word-limit maxlength="30" />
 
       </div>
@@ -101,7 +102,7 @@ const {userInfo} = useUserStore()
 
 <style lang='scss' scoped>
 .user-info {
-  width: 305px;
+  width: 320px;
   margin: 10px 0 0 15px;
   float: right;
   background-color: #fff;
@@ -142,7 +143,7 @@ const {userInfo} = useUserStore()
 
   .content {
 
-    width: 300px;
+    width: 320px;
     height: 350px;
     border-radius: 5px;
     padding: 15px 20px;
@@ -165,7 +166,7 @@ const {userInfo} = useUserStore()
         float: left;
       }
 
-     
+
     }
 
     .uid {

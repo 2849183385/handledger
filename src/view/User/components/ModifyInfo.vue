@@ -1,12 +1,12 @@
 <script setup>
-import { ref,onMounted, watch,toRefs } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import areaData from '@/assets/area/province-element-min.json'
 import { updateUserInfoAPI } from '@/apis/user'
 import { useUserStore } from '@/stores/userStore';
-import { storeToRefs } from 'pinia';
+import { ElMessage } from 'element-plus';
+// import { storeToRefs } from 'pinia';
 const userStore = useUserStore()
-const { userInfo} = storeToRefs(userStore)
-const { account, user_sex, nick_name, user_region, user_tel, user_email, user_brithday  }=storeToRefs(userInfo)
+const { userInfo: { account, user_sex, nick_name, user_region, user_tel, user_email, user_brithday, user_motto } } = userStore
 const areaDataRef = ref(null)
 // console.log(areaData)
 // const reactiveUserInfo = reactive(userInfo)
@@ -47,23 +47,27 @@ watch(() => userStore.userInfo, (newVal) => {
 const dialogFormVisible = ref(false)
 // const formLabelWidth = '140px'
 
-const form = toRefs(
+const form = ref(
     {
-    account ,
-    user_sex ,
-    nick_name ,
-    user_region ,
-    user_tel ,
-    user_email ,
-    user_brithday ,
-}
+        account,
+        nick_name,
+        user_sex,
+        user_region,
+        user_tel,
+        user_email,
+        user_brithday,
+        user_motto
+    }
 )
 
 console.log(form.value)
 const rules = ({
-    nick_name: [{ required: true, message: '请输入昵称', trigger: 'blur' }],
+    nick_name: [
+        { required: true, message: '请输入昵称', trigger: 'blur' },
+        { max: 6, message: '昵称最多6个字符', trigger: 'blur' }
+    ],
     user_sex: [
-        { type: 'number',required: true, message: '请选择性别', trigger: 'blur' }
+        { type: 'number', required: true, message: '请选择性别', trigger: 'blur' }
     ],
     user_region: [
         { required: true, message: '请选择籍贯', trigger: 'blur' }
@@ -74,10 +78,13 @@ const rules = ({
     ],
     user_email: [
         { required: true, message: '请输入邮箱', trigger: 'blur' },
-        { type: 'email', message: '请输入正确的邮箱地址', trigger:  'blur' }
+        { pattern: /^[A-Za-z0-9\u4e00-\u9fa5]+@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)+$/, message: '请输入正确的邮箱地址', trigger: 'blur' }
     ],
     user_brithday: [
         { required: true, message: '请选择出生日期', trigger: 'blur' }
+    ],
+    user_motto: [
+        { required: true, message: '请输入个性签名', trigger: 'blur' }
     ]
 })
 // const handleAreaChange = (value) => {
@@ -88,7 +95,7 @@ const rules = ({
 const formRef = ref(null)
 const onSubmit = async () => {
     console.log(form)
-     formRef.value.validate(async(valid) => {
+    formRef.value.validate(async (valid) => {
         if (valid) {
             // 表单验证通过，提交表单
             //将地区数据转换为字符串
@@ -97,18 +104,18 @@ const onSubmit = async () => {
             // form.value.user_brithday = moment(form.value.user_brithday).format('YYYY-MM-DD')
             // console.log(form.value.user_brithday)
             // form.value. = form.value.user_sex.toString()
-            console.log( form.value.user_region)
+            console.log(form.value.user_region)
             const res = await updateUserInfoAPI(form.value);
             // await userStore.getUserInfo(form.value.account)
             //提交修改后关闭弹窗
-            if(res) await userStore.getUserInfo(form.value.account)
-           
-            dialogFormVisible.value=false
+            if (res) await userStore.getUserInfo(form.value.account)
+            dialogFormVisible.value = false
+            ElMessage.success('修改成功');
             console.log(form.value)
-           console.log(res)
+            console.log(res)
         } else {
             // 表单验证不通过
-            // this.$message.error('表单验证不通过');
+            ElMessage.error('表单验证不通过');
         }
     });
 }
@@ -118,25 +125,24 @@ const onSubmit = async () => {
 <template>
     <div class="update-info">
         <el-button text @click="dialogFormVisible = true">
-            修改资料
+            修改信息
         </el-button>
     </div>
-    <el-dialog v-model="dialogFormVisible" title="用户信息" draggable center :close-on-click-modal="false" width="500px">
-        <el-form :hide-required-asterisk="true" 
-        :model="form" label-width="120px" :rules="rules" ref="formRef">
+    <el-dialog :lock-scroll="false"  :append-to-bod="true" v-model="dialogFormVisible" title="用户信息"
+        draggable center :close-on-click-modal="false" width="500px">
+        <el-form style="max-height: 500px;" :hide-required-asterisk="true" :model="form" label-width="70px" :rules="rules"
+            ref="formRef" :lock-scroll="false" :append-to-bod="true">
             <el-form-item label="昵称" prop="nick_name">
                 <el-input v-model="form.nick_name" type="text" />
             </el-form-item>
             <el-form-item label="性别" prop="user_sex">
-                <el-radio-group v-model="form.user_sex" >
+                <el-radio-group v-model="form.user_sex">
                     <el-radio :label='0'>男</el-radio>
                     <el-radio :label='1'>女</el-radio>
                 </el-radio-group>
             </el-form-item>
             <el-form-item label="籍贯" prop="user_region">
-                <el-cascader v-model="form.user_region" v-if="areaDataRef" 
-                :options="areaDataRef"
-                   clearable>
+                <el-cascader v-model="form.user_region" v-if="areaDataRef" :options="areaDataRef" clearable>
                 </el-cascader>
             </el-form-item>
             <el-form-item label="联系方式" prop="user_tel">
@@ -147,10 +153,13 @@ const onSubmit = async () => {
             </el-form-item>
             <el-form-item label="出生日期" prop="user_brithday">
                 <el-col :span="11">
-                    <el-date-picker v-model="form.user_brithday" type="date" placeholder="Pick a date" 
-                     format="YYYY/MM/DD"
-            value-format="YYYY-MM-DD" style="width: 100%" />
+                    <el-date-picker v-model="form.user_brithday" type="date" placeholder="Pick a date" format="YYYY/MM/DD"
+                        value-format="YYYY-MM-DD" style="width: 100%" />
                 </el-col>
+            </el-form-item>
+            <el-form-item label="个性签名" prop="user_motto">
+                <el-input resize='none' show-word-limit maxlength="30" :rows="5" v-model="form.user_motto"
+                    type="textarea" />
             </el-form-item>
         </el-form>
         <template #footer>
@@ -163,10 +172,15 @@ const onSubmit = async () => {
 </template>
 
 <style lang='scss' scoped>
+.el-form{
+    margin: 10px 50px;
+}
+
 .update-info {
     float: right;
     border-radius: 3px;
     border: 1px solid gray;
+
 
     .el-button {
         font-size: 10px;
@@ -176,13 +190,14 @@ const onSubmit = async () => {
 }
 
 .dialog-footer {
-    padding: 0 150px;
+    padding: 0 50px;
     display: flex;
     justify-content: space-between;
 
     .el-button {
+        margin: 0 30px;
         font-size: 18px;
-        height: 50px;
+        height: 40px;
         width: 150px;
     }
 }

@@ -1,14 +1,16 @@
 <script setup >
 import { useUserStore } from '@/stores/userStore'
-
-const { userInfo } = useUserStore()
+import { storeToRefs } from 'pinia';
+const userStore = useUserStore()
+const { userInfo } = storeToRefs(userStore)
+console.log(userInfo)
 </script>
 
 <template>
   <div class="h-inner">
     <div class="container">
       <div class="user">
-        <div class="user-avatar">
+        <div class="user-avatar" >
           <el-avatar :size="160" src="src/assets/images/avatar1.jpg">
             <!--头像加载失败 -->
             <el-icon style="font-size:40px;">
