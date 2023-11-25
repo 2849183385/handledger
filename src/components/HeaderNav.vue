@@ -3,6 +3,7 @@ import UserDropdowm from '@/components/UserDropdowm.vue';
 import SearchInput from '@/components/SearchInput.vue';
 import { useUserStore } from '@/stores/userStore'
 const userStore = useUserStore();
+// console.log(userStore.userInfo.user_id)
 </script>
 
 <template>
@@ -12,7 +13,7 @@ const userStore = useUserStore();
                <RouterLink :to="`/`">首页</RouterLink> 
             </li>
             <li class="plan">
-                <RouterLink :to="`/plan`">计划</RouterLink>
+                <RouterLink :to="'/plan'">计划</RouterLink>
             </li>
             <li class="home">
                 Role

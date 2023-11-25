@@ -11,6 +11,9 @@ export const useUserStore = defineStore("user", () => {
         res.data.data.user_region =JSON.parse(res.data.data.user_region)
         userInfo.value = res.data.data
     }
+    const cleanUserInfo = () => {
+        userInfo.value = {}
+    }
     const getToken = async ({ account, password }) => {
         const res = await loginAPI({ account, password })
         token.value = res.data.token
@@ -29,6 +32,7 @@ export const useUserStore = defineStore("user", () => {
         removeToken,
         userInfo,
         getUserInfo,
+        cleanUserInfo
         // setUserInfo
     }
 }, {

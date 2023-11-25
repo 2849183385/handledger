@@ -1,112 +1,88 @@
 <script setup >
-
-// import router from '@/router';
-import { ref, computed ,} from 'vue'
-import { formatTimestamp , convertToTimestamp } from '@/utils/format'
-// onMounted(() => {
-//   router.
-//   console.log('onMounted被调用');
-// })
-
-
+import { ref, computed, } from 'vue'
+import { formatTimestamp, convertToTimestamp } from '@/utils/format'
+import { useUserStore } from '@/stores/userStore'
+import { useTaskStore } from '@/stores/taskStore';
+const { userInfo: { user_id } } = useUserStore()
+// console.log(user_id)
+const taskStore = useTaskStore()
+// console.log(user_id)
+taskStore.getTasksById(user_id)
+const { taskInfo } = taskStore
 
 //-------------------------------------------------------------------------------------------------------------------------------
-/**将时间戳格式的时间，转换成年月日的格式*/
-// function formatTimestamp(timestamp) {
-//   const date = new Date(timestamp);
-//   const year = date.getFullYear().toString();
-//   const month = (date.getMonth() + 1).toString().padStart(2, '0');
-//   const day = date.getDate().toString().padStart(2, '0');
-//   return `${year}-${month}-${day}`;
-// }
-// // console.log(formatTimestamp(1731318200));
-// //转换时间戳
-// function convertToTimestamp(dateString) {
-//   const date = new Date(dateString);
-//   const timestamp = date.getTime();
-//   return timestamp;
-// }
 
 
-const radio = ref('0')
-const value = ref(new Date())
+// 任务数据
+const tasks = taskInfo
+console.log(tasks)
+// console.log(tasks[0].task_title)
+// console.log(taskStore)
+// console.log(taskInfo)
+// console.log(tasks.filter(task => task.task_title == 1221))
+// console.log(taskInfo)
+/*[{
+//   id: 1,
+//   title: '1吃饭',
+//   description: '吃饭dgdgsgdfgdfgewrgdzsftgwergvdfsgewrggedfdger',
+//   isCompleted: 1,
+//   status: 0,
+//   date: 1641491200000,
+// }, {
+//   id: 2,
+//   title: '2吃饭',
+//   description: '吃饭dgdgsgdfgdfgewrgdzsftgwergvdfsgewrggedfdger',
+//   isCompleted: 0,
+//   status: 0,
+//   date: 1731318200000,
+// },
+// {
+//   id: 3,
+//   title: '47睡觉',
+//   description: '睡觉',
+//   isCompleted: 1,
+//   status: 0,
+//   date: 1631577600000,
+// }, {
+//   id: 4,
+//   title: '睡觉',
+//   description: '睡觉',
+//   isCompleted: 1,
+//   status: 0,
+//   date: 1631664000000,
+// }, {
+//   id: 5,
+//   title: '睡觉',
+//   description: '睡觉',
+//   isCompleted: 1,
+//   status: 1,
+//   date: 1631750400000,
+]}*/
 
-//任务数据
-const tasks = ref([
-  {
-    id: 0,
-    title: '3吃饭',
-    description: '吃饭dgdgsgdfgdfgewrgdzsftgwergvdfsgewrggedfdger吃饭dgdgsgdfgdfgewrgdzsftgwergvdfsgewrggedfdge吃饭dgdgsgdfgdfgewrgdzsftgwergvdfsgewrggedfdge',
-    isCompleted: 0,
-    status: 0,
-    date: 1643734000000,
-  }, {
-    id: 1,
-    title: '1吃饭',
-    description: '吃饭dgdgsgdfgdfgewrgdzsftgwergvdfsgewrggedfdger',
-    isCompleted: 1,
-    status: 0,
-    date: 1641491200000,
-  }, {
-    id: 2,
-    title: '2吃饭',
-    description: '吃饭dgdgsgdfgdfgewrgdzsftgwergvdfsgewrggedfdger',
-    isCompleted: 0,
-    status: 0,
-    date: 1731318200000,
-  },
-  {
-    id: 3,
-    title: '47睡觉',
-    description: '睡觉',
-    isCompleted: 1,
-    status: 0,
-    date: 1631577600000,
-  }, {
-    id: 4,
-    title: '睡觉',
-    description: '睡觉',
-    isCompleted: 1,
-    status: 0,
-    date: 1631664000000,
-  }, {
-    id: 5,
-    title: '睡觉',
-    description: '睡觉',
-    isCompleted: 1,
-    status: 1,
-    date: 1631750400000,
-  }
-]
-)
-console.log(tasks.value)
-
-
-
-
-// // 被删除的任务数组
+// 被删除的任务数组
 // const deleteTaskArray = computed(() => {
-//   return tasks.value.filter(task => task.status === '1')
+//   return tasks.value.filter(task => task.is_delete === '1')
 // })
 
 
 /** 含有未被删除的任务数组 缓存作用*/
 const taskArrays = computed(() => {
-  return tasks.value.filter(task => task.status == 0)
+  return tasks.filter(task => task.is_delete == 0)
 })
-console.log(taskArrays.value)
+console.log('taskArrays', taskArrays.value.filter(task => task.is_Complateded == 'Pending'))
+console.log('taskArrays', taskArrays.value.filter(task => task.is_Complateded == 'Completed'))
 
 // 统计isCompleted为1的数量
 const isCompletedCount = computed({
-  get: () => { 
-  return (tasks.value.filter(task => task.status === 0)).filter(task => task.isCompleted === 1).length;
+  get: () => {
+    return (tasks.filter(task => task.is_delete == 0)).filter(task => task.is_Complateded === 'Completed').length;
   },
-}) 
+})
 // 统计status为1的数量
 
 
 
-
+const isCompleteTask = ref(0)
 //当前在任务未完成页面时，返回全部列表，当前在任务完成页面时，返回已完成任务组成的数组
 /**根isCompleteTask状态返回已完成或未完成任务的数据，用来渲染task-item组件*/
 const taskArray = computed({
@@ -114,9 +90,9 @@ const taskArray = computed({
   get: () => {
     if (!isCompleteTask.value) {
       //过滤已完成任务，留下未完成任务数组
-      return taskArrays.value.filter(task => task.isCompleted == 0)
+      return taskArrays.value.filter(task => task.status == 'Pending' || task.status == 'In Progress')
     } else {
-      return taskArrays.value.filter(task => task.isCompleted == 1)
+      return taskArrays.value.filter(task => task.status == 'Completed')
     }
   },
   set: () => {
@@ -124,24 +100,29 @@ const taskArray = computed({
     //   console.log(this, value);
   }
 })
-
-
+console.log('taskArray', taskArray.value)
+console.log(taskArray.value[0].end_date)
+console.log(formatTimestamp(1703001600000))
+console.log(formatTimestamp(taskArray.value[0].end_date))
 //切换任务状态视图
-/**完成状态和未完成状态视图切换flag*/
-const isCompleteTask = ref(0)
+// 完成状态和未完成状态视图切换flag
+
 //切换逻辑
 function isCompleteTasks(value) {
-  //切换任务完成状态后，高亮重置
+  // 切换任务完成状态后，高亮重置
   selectedTaskIndex.value = -1;
 
   isCompleteTask.value = parseInt(value)
-  // // 切换任务完成状态
+  // 切换任务完成状态
   console.log(typeof isCompleteTask.value);
   console.log('isCompleteTasks被执行');
 }
 
 /**用来存储被选中要被修改的task-item组件*/
-const taskDetail = ref(null)
+//描述面板内容  通过Id筛选任务
+const taskDetail = computed(() => {
+  return tasks.find(task => task.id === selectTaskId.value)
+})
 /**用来存储被选中要被修改的task-item组件的ID*/
 const selectTaskId = ref(null)
 //任务被选中逻辑
@@ -156,7 +137,7 @@ function selectTask(index, id) {
   console.log('selectTask被执行')
   //筛选出描述面板内容
   selectTaskId.value = id;
-  taskDetail.value = tasks.value.find(task => task.id === selectTaskId.value)
+  taskDetail.value = tasks.find(task => task.id === selectTaskId.value)
   console.log(taskDetail.value)
   console.log(completestaus.value)
   //返回被选中任务的索引
@@ -170,11 +151,6 @@ function selectTask(index, id) {
 }
 
 
-
-// //描述面板内容  通过Id筛选任务
-// const taskDetail = computed(() => {
-//   return tasks.value.find(task => task.id === selectTaskId.value)
-// })
 
 
 //-------------------------------------------------------------------------------------------------------------------------------
@@ -196,7 +172,6 @@ function sortByDate(arr) {
   // console.log(newArr)
   return newArr;
 }
-
 //按id排序
 // function sortById(arr) {
 //   const newArr = [...arr];
@@ -211,7 +186,6 @@ function sortByDate(arr) {
 //   });
 //   // console.log(newArr)
 // }
-
 // //按名称排序
 function sortByTitle(arr) {
   console.log('sortByTitle被调用');
@@ -227,7 +201,6 @@ function sortByTitle(arr) {
   });
   return newArr;
 }
-
 //处理排序问题
 function handleCommand() {
   const command = arguments[1].attrs.value
@@ -250,7 +223,6 @@ function handleCommand() {
       break;
   }
 }
-
 // const sortDate = computed(() => {
 //   return taskArray.value.sort((a, b) => {
 //     return new Date(a.date).getTime() - new Date(b.date).getTime()
@@ -264,7 +236,7 @@ function handleCommand() {
 // })
 
 //-------------------------------------------------------------------------------------------
-// 全选反全选功能
+/* 全选反全选功能
 // const selectedTasks = ref([])
 // //总选择框
 // const selectAll = computed({
@@ -292,24 +264,15 @@ function handleCommand() {
 //   } else {
 //     selectedTasks.value = []
 //   }
-// }
+}*/
 
 
 //-------------------------------------------------------------------------------------------
 //切换任务完成状态
 
 
-
-
-
-
-
 //-------------------------------------------------------------------------------------------
 //添加任务视图逻辑
-
-
-
-
 
 //任务表单
 const taskForm = ref({
@@ -348,22 +311,14 @@ function removeFocus() {
   console.log('removeFocus被调用');
 }
 
-
-
-
-
 //-----------------------------------------------------------------------------------------------------------------------------------
-function addTask() {
-  // 调用后端接口添加任务
-}
+// function addTask() {
+//   // 调用后端接口添加任务
+// }
 // eslint-disable-next-line no-unused-vars
 function editTask(task) {
   // 调用后端接口编辑任务
 }
-
-
-
-
 
 const dialogVisible = ref(false)
 const taskCompleteVisible = ref(false)
@@ -374,7 +329,6 @@ const taskDeleteVisible = ref(false)
  * @param taskId
  */
 function openCompleteVisible(taskId) {
-
   taskCompleteVisible.value = true
   selectTaskId.value = taskId
   console.log('openCompleteVisible被调用', selectTaskId.value);
@@ -384,32 +338,32 @@ function openCompleteVisible(taskId) {
  * 完成任务
  */
 function completeTask() {
-  console.log('isCompletedCount:',isCompletedCount);
+  console.log('isCompletedCount:', isCompletedCount);
   // 调用后端接口标记任务完成
-  tasks.value[selectTaskId.value].isCompleted = '1'
+  tasks[selectTaskId.value].isCompleted = '1'
   taskCompleteVisible.value = false
   console.log('completeTask被调用', selectTaskId.value)
   console.log(taskArrays.value)
-  console.log('isCompletedCount:',isCompletedCount);
+  console.log('isCompletedCount:', isCompletedCount);
 }
 
 
-function openDeleteVisible(taskId) {
-  taskDeleteVisible.value = true
-  selectTaskId.value = taskId
-  console.log('openDeleteVisible被调用', selectTaskId.value);
-}
+// function openDeleteVisible(taskId) {
+//   taskDeleteVisible.value = true
+//   selectTaskId.value = taskId
+//   console.log('openDeleteVisible被调用', selectTaskId.value);
+// }
 /**
  * 删除任务
  * @param taskId
  */
-function deleteTask() {
-  // 调用后端接口删除任务
-  tasks.value[selectTaskId.value].status = '1'
-  taskDeleteVisible.value = false
-  console.log('deleteTask被调用', selectTaskId.value);
+// function deleteTask() {
+//   // 调用后端接口删除任务
+//   tasks.value[selectTaskId.value].status = '1'
+//   taskDeleteVisible.value = false
+//   console.log('deleteTask被调用', selectTaskId.value);
 
-}
+// }
 
 // eslint-disable-next-line no-unused-vars
 function fetchTasks() {
@@ -434,10 +388,7 @@ const completestaus = computed({
     }
   }
 })
-
-
-
-</script>
+</script> 
 
 <template>
   <div class="container">
@@ -448,7 +399,7 @@ const completestaus = computed({
       <div class="all-task_item">
         <ul>
           <li style="">
-            <span>{{ taskArrays && taskArrays.length}}</span>
+            <!-- <span>{{ taskArrays && taskArrays.length}}</span> -->
             <span>task</span>
           </li>
           <li style="background-color: #e1a14d;">
@@ -460,7 +411,7 @@ const completestaus = computed({
             <span>逾期</span>
           </li>
           <li>
-            <span>{{ isCompletedCount}}</span>
+            <span>{{ isCompletedCount }}</span>
             <span>已完成</span>
           </li>
         </ul>
@@ -545,24 +496,23 @@ const completestaus = computed({
 
       <!-- 任务列表项 -->
       <div class="task-list">
-        <div class="task-item " :class="{
-          'completed-task': item.isCompleted,
+        <div class="task-item "  
+        v-for="(item, index) in taskArray"
+        :class="{
+          'completed-task': item.isCompleted=='pending',
           'task-item-selected': index === selectedTaskIndex,
-          'over-time': (!item.isCompleted) && (item.date > convertToTimestamp(new Date()))
-        }" v-for="(item, index) in taskArray" :key="index" @click="selectTask(index, item.id)"
-          v-show="item.status == 0">
-          <el-text class="task-title">{{ item.id }}</el-text>
-          <el-text class="task-content" truncated="true">{{ item.description }}</el-text>
-          <el-text class="task-time">{{ formatTimestamp(item.date) }}</el-text>
-
-          <el-button type="primary" :icon="Check" size="small" circle @click="openCompleteVisible(item.id)"><el-icon>
+          'over-time': (item.isCompleted =='pending') && (item.end_date > convertToTimestamp(new Date()))
+        }" :key="index" @click="selectTask(index, item.task_id)">
+          <el-text class="task-title">{{ item.task_title }}</el-text>
+          <el-text class="task-content" truncated="true">{{ item.task_description }}</el-text>
+          <el-text class="task-time">{{ formatTimestamp(item.end_date) }}</el-text>
+          <el-button type="primary" :icon="Check" size="small" circle @click="openCompleteVisible(item.task_id)"><el-icon>
               <check />
             </el-icon></el-button>
 
-          <el-button type="danger" size="small" circle @click="openDeleteVisible(item.id)"><el-icon>
+          <el-button type="danger" size="small" circle @click="openDeleteVisible(item.task_id)"><el-icon>
               <Delete />
             </el-icon></el-button>
-
         </div>
         <div class="task-item"> </div>
         <div class="task-item"></div>
@@ -579,10 +529,8 @@ const completestaus = computed({
         <div class="task-item"></div>
         <div class="task-item"></div>
         <div class="task-item"></div>
-        <div class="task-item"></div>
+        <div class="task-item"></div> 
       </div>
-
-
 
       <div class="alter-task-staus">
         <!-- 完成任务确认对话框 -->
@@ -602,7 +550,7 @@ const completestaus = computed({
         </el-dialog>
 
         <!-- 删除任务对话框 -->
-        <el-dialog v-model="taskDeleteVisible"  width="15%" center :modal="false" :lock-scroll="false"
+        <el-dialog v-model="taskDeleteVisible" width="15%" center :modal="false" :lock-scroll="false"
           :append-to-bod="true">
           <template #default>
             <p style="text-align: center;">删除任务？</p>
@@ -649,14 +597,11 @@ const completestaus = computed({
         <div class="detail-item">
           <span>截止时间:</span>
           <el-text>{{ taskDetail && formatTimestamp(taskDetail.date) }}</el-text>
-
         </div>
 
 
       </div>
     </div>
-
-
 
   </div>
 </template>
@@ -923,7 +868,7 @@ const completestaus = computed({
     }
 
     .el-icon {
-     
+
       z-index: 2;
       position: absolute;
       background-color: #ffffff00;
