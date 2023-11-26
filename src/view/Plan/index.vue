@@ -1,10 +1,11 @@
 <script setup >
-import { ref, computed, } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { formatTimestamp, convertToTimestamp } from '@/utils/format'
 import { useUserStore } from '@/stores/userStore'
 import { useTaskStore } from '@/stores/taskStore';
 import { addNewTaskAPI } from '@/apis/task'
 import { ElMessage } from 'element-plus';
+import TaskDetail from './components/TaskDetail.vue';
 const { userInfo: { user_id } } = useUserStore()
 // console.log(user_id)
 const taskStore = useTaskStore()
@@ -13,7 +14,7 @@ taskStore.getTasksById(user_id)
 const { taskInfo } = taskStore
 
 //-------------------------------------------------------------------------------------------------------------------------------
-
+const radio=ref(0)
 // 任务数据
 let tasks = ref(taskInfo)
 console.log(tasks)
@@ -125,22 +126,24 @@ const taskDetail = computed(() => {
   return tasks.value.find(task => task.task_id === selectTaskId.value)
 })
 /**用来存储被选中要被修改的task-item组件的ID*/
-const selectTaskId = ref(null)
+const selectTaskId = ref(-1)
+watch(selectTaskId, () => {
+
+})
 //任务被选中逻辑
 //在任务项中注册一个selectTask事件，任务被点击，则将被点击的任务索引存储到selectedTaskIndex中
 //通过selectedTaskIndex存储被选中的任务的索引
 //判断当前任务是否被选中
 //如果被选中，则高亮
 //如果未被选中，则取消高亮
-const selectedTaskIndex = ref(-1)
+const selectedTaskIndex = ref(21)
 
 function selectTask(index, id) {
   console.log('selectTask被执行')
   //筛选出描述面板内容
   selectTaskId.value = id;
+  console.log(selectTaskId.value)
   taskDetail.value = tasks.value.find(task => task.id === selectTaskId.value)
-  console.log(taskDetail.value)
-  console.log(completestaus.value)
   //返回被选中任务的索引
   if (selectedTaskIndex.value === index) {
     selectedTaskIndex.value = -1; // 如果已经选中了任务，则取消选中
@@ -302,30 +305,31 @@ const submitForm = () => {
   taskFormRef.value.validate(async (valid) => {
     if (valid) {
       // 表单验证通过，执行提交逻辑
-      addNewTaskAPI({
-        task_description: taskForm.value.task_description,
-        task_title: taskForm.value.task_title,
-        priority: taskForm.value.priority,
-        start_date: taskForm.value.estimatedTime[0],
-        end_date: taskForm.value.estimatedTime[1],
-        creator_id:user_id,
-      })
-      taskStore.getTasksById(user_id)
-    ElMessage.success('添加成功');
       // await this.handleSubmit();
-      // this.dialogVisible.value = false
-    } else {
-      return false;
-    }
+      addDialogVisible.value = false
+    } 
   });
 }
-//视图被关闭后，文本框的聚焦移除
-const inputRef = ref(null)
-function removeFocus() {
-  console.log('removeFocus');
-  inputRef.value.blur();
-  console.log('removeFocus被调用');
+function addTask(){
+  addNewTaskAPI({
+    task_description: taskForm.value.task_description,
+    task_title: taskForm.value.task_title,
+    priority: taskForm.value.priority,
+    start_date: taskForm.value.estimatedTime[0],
+    end_date: taskForm.value.estimatedTime[1],
+    creator_id: user_id,
+  })
+  taskStore.getTasksById(user_id)
+  taskForm.value = {
+    task_title: '',
+    task_description: '',
+    estimatedTime: '',
+    priority: ''
+  }
+  ElMessage.success('添加成功');
 }
+
+
 
 //-----------------------------------------------------------------------------------------------------------------------------------
 // function addTask() {
@@ -336,7 +340,7 @@ function editTask(task) {
   // 调用后端接口编辑任务
 }
 
-const dialogVisible = ref(false)
+const addDialogVisible = ref(false)
 const taskCompleteVisible = ref(false)
 const taskDeleteVisible = ref(false)
 
@@ -357,11 +361,8 @@ const handleCompleteTask = async () => {
   console.log('completedCount:', completedCount);
   // 调用后端接口标记任务完成
   await taskStore.updateTaskStatus(user_id, selectTaskId.value, 'completed')
-  // tasks[selectTaskId.value].status = 'completed'
   taskCompleteVisible.value = false
-  // console.log('completeTask被调用', selectTaskId.value)
-  // console.log(taskArrays.value)
-  // console.log('completedCount:', completedCount);
+  
 }
 
 
@@ -387,24 +388,10 @@ function fetchTasks() {
   // 调用后端接口获取任务列表
 }
 //处理排序
-// console.log(completestaus.value)
 
 //---------------------------------------------------------------------------------------------------------------
 
-const completestaus = computed({
-  get: () => {
-    if (!(taskDetail.value == null)) {
-      //如果截止时间小于当前时间，且任务未完成，则显示红色
-      if (taskDetail.value.end_date < convertToTimestamp(new Date()) && !taskDetail.value.status == 'completed')
-        return 'red'
-      else {
-        return taskDetail.value.status == 'pending' ? 'green' : 'yellow'
-      }
-    } else {
-      return null
-    }
-  }
-})
+
 </script> 
 
 <template>
@@ -428,13 +415,13 @@ const completestaus = computed({
             <span>逾期</span>
           </li>
           <li>
-            <span>{{ isCompletedCount }}</span>
+            <span></span>
             <span>已完成</span>
           </li>
         </ul>
       </div>
     </div>
-    <el-calendar v-model="value" />
+    <el-calendar />
 
     <!-- 任务内容盒子 -->
     <div class="content">
@@ -449,31 +436,31 @@ const completestaus = computed({
           </el-button>
           <template #dropdown>
             <el-dropdown-menu>
-              <el-dropdown-item value="default" :icon="Select">默认排序</el-dropdown-item>
-              <el-dropdown-item value="bytime" :icon="Select">按时间排序</el-dropdown-item>
-              <el-dropdown-item value="byname" :icon="Select">按名称排序</el-dropdown-item>
+              <el-dropdown-item value="default" >默认排序</el-dropdown-item>
+              <el-dropdown-item value="bytime" >按时间排序</el-dropdown-item>
+              <el-dropdown-item value="byname" >按名称排序</el-dropdown-item>
             </el-dropdown-menu>
           </template>
         </el-dropdown>
 
         <!-- 切换完成状态 -->
         <el-radio-group v-model="radio" size="default" @change="isCompleteTasks">
-          <el-radio style="border: none;" label="0">未完成</el-radio>
-          <el-radio style="border: none;" label="1">已完成</el-radio>
+          <el-radio style="border: none;" :label=0>未完成</el-radio>
+          <el-radio style="border: none;" :label=1>已完成</el-radio>
         </el-radio-group>
       </div>
 
       <!-- 添加任务 -->
       <div class="add-task" v-show="!isCompleteTask">
-        <el-input type="text" class="w-50 m-2" placeholder="添加你的任务吧" width="200px" @focus="dialogVisible = true"
-          @keyup.enter="addTask" ref="inputRef" :value="taskForm.taskName" />
+        <el-input type="text" class="w-50 m-2" placeholder="添加你的任务吧" width="200px" @click="addDialogVisible=true "
+          @keyup.enter="addTask" ref="inputRef" :value="taskForm.task_title" />
         <el-button @click="addTask">添加</el-button>
       </div>
 
       <!-- 添加任务弹出层-->
       <div class="add-task-dialog">
-        <el-dialog :modal="false" :close-on-click-modal="false" v-model="dialogVisible" title="添加你的任务" width="30%" center
-          @close="removeFocus" :append-to-body="true" :lock-scroll="false">
+        <el-dialog :modal="false" :close-on-click-modal="false" v-model="addDialogVisible" title="添加你的任务" width="30%" center
+           :append-to-body="true" :lock-scroll="false">
           <!-- 添加任务表单 -->
           <el-form hide-required-asterisk="true" :model="taskForm" :rules="rules" ref="taskFormRef" label-width="100px"
             style="max-width: 600px; margin: 0 auto;">
@@ -501,7 +488,7 @@ const completestaus = computed({
 
           <template #footer>
             <span class="dialog-footer">
-              <el-button @click="dialogVisible = false">返回</el-button>
+              <el-button @click="addDialogVisible = false">返回</el-button>
               <el-button type="primary" @click="submitForm()">提交</el-button>
             </span>
           </template>
@@ -526,9 +513,9 @@ const completestaus = computed({
           'over-time': (item.status !== 'completed') && (item.end_date < convertToTimestamp(new Date()))
         }" :key="index" @click="selectTask(index, item.task_id)">
           <el-text class="task-title">{{ item.task_title }}</el-text>
-          <el-text class="task-content" truncated="true">{{ item.task_description }}</el-text>
+          <el-text class="task-content" :truncated="true">{{ item.task_description }}</el-text>
           <el-text class="task-time">{{ formatTimestamp(item.end_date) }}</el-text>
-          <el-button type="primary" :icon="Check" size="small" circle @click="openCompleteVisible(item.task_id)"><el-icon>
+          <el-button type="primary" size="small" circle @click="openCompleteVisible(item.task_id)"><el-icon>
               <check />
             </el-icon></el-button>
 
@@ -588,42 +575,7 @@ const completestaus = computed({
         </el-dialog>
       </div>
     </div>
-
-    <div class="bg-box" v-show="taskDetail">
-      <el-icon :color="completestaus">
-        <CollectionTag />
-      </el-icon>
-      <div class="task-detail">
-        <h3>任务详情</h3>
-        <div class="detail-item">
-          <span>任务名称</span>
-          <el-text> {{ taskDetail && taskDetail.task_title }}</el-text>
-        </div>
-        <div class="detail-item">
-          <span>状态:</span>
-          <el-text>
-            {{ taskDetail && (taskDetail.status == 'Completed' ? '已完成' : '待完成') }}
-          </el-text>
-        </div>
-        <div class="detail-item">
-          <span>任务内容:</span>
-          <div class="task-content">
-            <el-text truncated="true">{{ taskDetail && taskDetail.task_description }}</el-text>
-          </div>
-        </div>
-
-        <div class="detail-item">
-          <span>开始时间:</span>
-          <el-text>{{ taskDetail && formatTimestamp(taskDetail.start_date) }}</el-text>
-        </div>
-        <div class="detail-item">
-          <span>截止时间:</span>
-          <el-text>{{ taskDetail && formatTimestamp(taskDetail.end_date) }}</el-text>
-        </div>
-
-
-      </div>
-    </div>
+   <TaskDetail :selectTaskId="selectTaskId"></TaskDetail>
 
   </div>
 </template>
@@ -855,72 +807,6 @@ const completestaus = computed({
     }
   }
 
-  //任务细节样式
-  .bg-box {
-    height: 400px;
-    max-width: 300px;
-    border-radius: 5px;
-    background-color: rgb(255, 255, 255);
-    padding: 50px 15px 15px;
-    margin: 50px 30px 30px 30px;
-    position: relative;
-    flex: 1;
-    box-shadow: 14px 14px 20px #cbced1;
 
-    &::before {
-      transform: rotate(1.5deg);
-      content: '';
-      position: absolute;
-      left: 0;
-      top: 0;
-      width: 100%;
-      height: 100%;
-      background-color: rgb(255, 255, 255);
-    }
-
-    &::after {
-      transform: rotate(0.5deg);
-      content: '';
-      position: absolute;
-      left: 0;
-      top: 0;
-      width: 100%;
-      height: 100%;
-      background-color: rgb(255, 255, 255);
-    }
-
-    .el-icon {
-
-      z-index: 2;
-      position: absolute;
-      background-color: #ffffff00;
-      top: -5px;
-      right: 15px;
-      font-size: 50px;
-    }
-
-    .task-detail {
-      background-color: #fff;
-      position: relative;
-      z-index: 1;
-
-      .detail-item {
-        margin: 10px 5px;
-      }
-
-      .task-content {
-        margin: 5px;
-        border-radius: 5px;
-        border: 1px gray solid;
-        height: 150px;
-        padding: 12px 5px;
-      }
-
-      .el-text {
-        margin-left: 10px;
-      }
-
-    }
-  }
 }
 </style>

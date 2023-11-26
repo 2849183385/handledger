@@ -14,7 +14,7 @@ export function formatTimestamp(timestamp) {
     //     return "Invalid timestamp";
     // }
 }
-console.log(convertToTimestamp(new Date()))
+// console.log(convertToTimestamp(new Date()))
 // Wed Dec 20 2023 00:00:00 GMT +0800(中国标准时间)
 // console.log(new Date(1703001600000))
 // console.log(formatTimestamp(1703001600000));
