@@ -1,6 +1,6 @@
 import request from '@/utils/request'
 
-
+//获取任务信息
 export const getTaskInfoAPI = (id) => {
     return request({
         method: 'get',
@@ -8,5 +8,28 @@ export const getTaskInfoAPI = (id) => {
         params: {
             id
         }
+    })
+}
+
+
+//修改任务状态
+export const updateTaskStatusAPI = (user_id,task_id, status) => {
+    return request({
+        method: 'post',
+        url: `/task/updateTaskStatus`,
+        data: {
+            task_id,
+            status,
+            user_id
+        }
+    })
+}
+
+//添加新的任务
+export const addNewTaskAPI = (data) => {
+    return request({
+        method: 'post',
+        url: `/task/addTask`,
+        data
     })
 }

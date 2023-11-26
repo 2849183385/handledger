@@ -1,11 +1,20 @@
+// function isValidTimestamp(timestamp) {
+//     return !isNaN(timestamp) && timestamp > 0;
+// }
+
 /**将时间戳格式的时间，转换成年月日的格式*/
 export function formatTimestamp(timestamp) {
+    // if (isValidTimestamp(timestamp)) {
     const date = new Date(timestamp);
     const year = date.getFullYear().toString();
     const month = (date.getMonth() + 1).toString().padStart(2, '0');
     const day = date.getDate().toString().padStart(2, '0');
-    return `${year}-${month}-${day}`;
+        return `${year}-${month}-${day}`;
+    // } else {
+    //     return "Invalid timestamp";
+    // }
 }
+console.log(convertToTimestamp(new Date()))
 // Wed Dec 20 2023 00:00:00 GMT +0800(中国标准时间)
 // console.log(new Date(1703001600000))
 // console.log(formatTimestamp(1703001600000));

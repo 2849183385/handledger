@@ -3,6 +3,8 @@ import { ref, computed, } from 'vue'
 import { formatTimestamp, convertToTimestamp } from '@/utils/format'
 import { useUserStore } from '@/stores/userStore'
 import { useTaskStore } from '@/stores/taskStore';
+import { addNewTaskAPI } from '@/apis/task'
+import { ElMessage } from 'element-plus';
 const { userInfo: { user_id } } = useUserStore()
 // console.log(user_id)
 const taskStore = useTaskStore()
@@ -12,9 +14,8 @@ const { taskInfo } = taskStore
 
 //-------------------------------------------------------------------------------------------------------------------------------
 
-
 // 任务数据
-const tasks = taskInfo
+let tasks = ref(taskInfo)
 console.log(tasks)
 // console.log(tasks[0].task_title)
 // console.log(taskStore)
@@ -25,14 +26,14 @@ console.log(tasks)
 //   id: 1,
 //   title: '1吃饭',
 //   description: '吃饭dgdgsgdfgdfgewrgdzsftgwergvdfsgewrggedfdger',
-//   isCompleted: 1,
+//   completedCount: 1,
 //   status: 0,
 //   date: 1641491200000,
 // }, {
 //   id: 2,
 //   title: '2吃饭',
 //   description: '吃饭dgdgsgdfgdfgewrgdzsftgwergvdfsgewrggedfdger',
-//   isCompleted: 0,
+//   completedCount: 0,
 //   status: 0,
 //   date: 1731318200000,
 // },
@@ -40,21 +41,21 @@ console.log(tasks)
 //   id: 3,
 //   title: '47睡觉',
 //   description: '睡觉',
-//   isCompleted: 1,
+//   completedCount: 1,
 //   status: 0,
 //   date: 1631577600000,
 // }, {
 //   id: 4,
 //   title: '睡觉',
 //   description: '睡觉',
-//   isCompleted: 1,
+//   completedCount: 1,
 //   status: 0,
 //   date: 1631664000000,
 // }, {
 //   id: 5,
 //   title: '睡觉',
 //   description: '睡觉',
-//   isCompleted: 1,
+//   completedCount: 1,
 //   status: 1,
 //   date: 1631750400000,
 ]}*/
@@ -67,15 +68,15 @@ console.log(tasks)
 
 /** 含有未被删除的任务数组 缓存作用*/
 const taskArrays = computed(() => {
-  return tasks.filter(task => task.is_delete == 0)
+  return tasks.value.filter(task => task.is_delete == 0)
 })
-console.log('taskArrays', taskArrays.value.filter(task => task.is_Complateded == 'Pending'))
-console.log('taskArrays', taskArrays.value.filter(task => task.is_Complateded == 'Completed'))
+console.log('taskArrays', taskArrays.value.filter(task => task.status == 'Pending'))
+console.log('taskArrays', taskArrays.value.filter(task => task.status == 'Completed'))
 
-// 统计isCompleted为1的数量
-const isCompletedCount = computed({
+// 统计completedCount为1的数量
+const completedCount = computed({
   get: () => {
-    return (tasks.filter(task => task.is_delete == 0)).filter(task => task.is_Complateded === 'Completed').length;
+    return (tasks.value.filter(task => task.is_delete == 0)).filter(task => task.is_Complateded === 'Completed').length;
   },
 })
 // 统计status为1的数量
@@ -100,10 +101,10 @@ const taskArray = computed({
     //   console.log(this, value);
   }
 })
-console.log('taskArray', taskArray.value)
-console.log(taskArray.value[0].end_date)
-console.log(formatTimestamp(1703001600000))
-console.log(formatTimestamp(taskArray.value[0].end_date))
+// console.log('taskArray', taskArray.value)
+// console.log(typeof taskArray.value[0].end_date)
+// console.log(formatTimestamp(1703001600000))
+// console.log(formatTimestamp(taskArray.value[0].end_date))
 //切换任务状态视图
 // 完成状态和未完成状态视图切换flag
 
@@ -121,7 +122,7 @@ function isCompleteTasks(value) {
 /**用来存储被选中要被修改的task-item组件*/
 //描述面板内容  通过Id筛选任务
 const taskDetail = computed(() => {
-  return tasks.find(task => task.id === selectTaskId.value)
+  return tasks.value.find(task => task.task_id === selectTaskId.value)
 })
 /**用来存储被选中要被修改的task-item组件的ID*/
 const selectTaskId = ref(null)
@@ -137,7 +138,7 @@ function selectTask(index, id) {
   console.log('selectTask被执行')
   //筛选出描述面板内容
   selectTaskId.value = id;
-  taskDetail.value = tasks.find(task => task.id === selectTaskId.value)
+  taskDetail.value = tasks.value.find(task => task.id === selectTaskId.value)
   console.log(taskDetail.value)
   console.log(completestaus.value)
   //返回被选中任务的索引
@@ -161,10 +162,10 @@ function sortByDate(arr) {
   console.log('sortByDate被调用');
   const newArr = [...arr];
   newArr.sort((a, b) => {
-    if (a.date < b.date) {
+    if (a.end_date < b.end_date) {
       return -1;
     }
-    if (a.date > b.date) {
+    if (a.end_date > b.end_date) {
       return 1;
     }
     return 0;
@@ -191,10 +192,10 @@ function sortByTitle(arr) {
   console.log('sortByTitle被调用');
   const newArr = [...arr];
   newArr.sort((a, b) => {
-    if (a.title < b.title) {
+    if (a.task_title < b.task_title) {
       return -1;
     }
-    if (a.title > b.title) {
+    if (a.task_title > b.task_title) {
       return 1;
     }
     return 0;
@@ -204,19 +205,19 @@ function sortByTitle(arr) {
 //处理排序问题
 function handleCommand() {
   const command = arguments[1].attrs.value
-  console.log('handleCommand被调用');
+  console.log('handleCommand被调用', arguments[1].attrs.value);
   //使用变量sortArray接受排序后的数据，再将sortArray赋值给taskArray
   switch (command) {
     case 'default':
       taskArray.value = [...taskArray.value]
-      console.log('default执行', tasks.value)
+      console.log('default执行', tasks)
       break;
     case 'bytime':
-      tasks.value = sortByDate([...tasks.value]);
-      console.log(tasks.value, 'bytime执行')
+      tasks.value = sortByDate([...tasks]);
+      console.log(tasks, 'bytime执行')
       break;
     case 'byname':
-      tasks.value = sortByTitle([...tasks.value]);
+      tasks.value = sortByTitle([...tasks]);
       console.log('byname执行', taskArray.value)
       break;
     default:
@@ -274,17 +275,22 @@ function handleCommand() {
 //-------------------------------------------------------------------------------------------
 //添加任务视图逻辑
 
+
 //任务表单
 const taskForm = ref({
-  taskName: '',
-  taskContent: '',
+  task_title: '',
+  task_description: '',
   estimatedTime: '',
+  priority: ''
 })
 //表单验证规则对象
 const rules = {
-  taskName: [{ required: true, message: '请输入任务名称', trigger: 'blur' }],
-  taskContent: [{ required: true, message: '请输入任务内容', trigger: 'blur' }],
+  task_title: [{ required: true, message: '请输入任务名称', trigger: 'blur' }],
+  task_description: [{ required: true, message: '请输入任务内容', trigger: 'blur' }],
   estimatedTime: [{ required: true, message: '请选择预估时间', trigger: 'blur' }],
+  priority: [
+    { required: true, message: '请选择优先级', trigger: 'blur' },
+  ]
 }
 //提交表单前验证
 const taskFormRef = ref(null)
@@ -296,6 +302,16 @@ const submitForm = () => {
   taskFormRef.value.validate(async (valid) => {
     if (valid) {
       // 表单验证通过，执行提交逻辑
+      addNewTaskAPI({
+        task_description: taskForm.value.task_description,
+        task_title: taskForm.value.task_title,
+        priority: taskForm.value.priority,
+        start_date: taskForm.value.estimatedTime[0],
+        end_date: taskForm.value.estimatedTime[1],
+        creator_id:user_id,
+      })
+      taskStore.getTasksById(user_id)
+    ElMessage.success('添加成功');
       // await this.handleSubmit();
       // this.dialogVisible.value = false
     } else {
@@ -337,14 +353,15 @@ function openCompleteVisible(taskId) {
 /**
  * 完成任务
  */
-function completeTask() {
-  console.log('isCompletedCount:', isCompletedCount);
+const handleCompleteTask = async () => {
+  console.log('completedCount:', completedCount);
   // 调用后端接口标记任务完成
-  tasks[selectTaskId.value].isCompleted = '1'
+  await taskStore.updateTaskStatus(user_id, selectTaskId.value, 'completed')
+  // tasks[selectTaskId.value].status = 'completed'
   taskCompleteVisible.value = false
-  console.log('completeTask被调用', selectTaskId.value)
-  console.log(taskArrays.value)
-  console.log('isCompletedCount:', isCompletedCount);
+  // console.log('completeTask被调用', selectTaskId.value)
+  // console.log(taskArrays.value)
+  // console.log('completedCount:', completedCount);
 }
 
 
@@ -377,11 +394,11 @@ function fetchTasks() {
 const completestaus = computed({
   get: () => {
     if (!(taskDetail.value == null)) {
-      //如果截止时间大于当前时间，且任务未完成，则显示红色
-      if (taskDetail.value.date > convertToTimestamp(new Date()) && !taskDetail.value.isCompleted)
+      //如果截止时间小于当前时间，且任务未完成，则显示红色
+      if (taskDetail.value.end_date < convertToTimestamp(new Date()) && !taskDetail.value.status == 'completed')
         return 'red'
       else {
-        return taskDetail.value.isCompleted ? 'yellow' : 'green'
+        return taskDetail.value.status == 'pending' ? 'green' : 'yellow'
       }
     } else {
       return null
@@ -460,17 +477,24 @@ const completestaus = computed({
           <!-- 添加任务表单 -->
           <el-form hide-required-asterisk="true" :model="taskForm" :rules="rules" ref="taskFormRef" label-width="100px"
             style="max-width: 600px; margin: 0 auto;">
-            <el-form-item label="任务名称" prop="taskName">
-              <el-input v-model="taskForm.taskName" prefix-icon="el-icon-edit"></el-input>
+            <el-form-item label="任务名称" prop="task_title">
+              <el-input v-model="taskForm.task_title" prefix-icon="el-icon-edit"></el-input>
             </el-form-item>
 
             <el-form-item label="预估时间" prop="estimatedTime">
               <el-date-picker v-model="taskForm.estimatedTime" type="datetimerange" start-placeholder="Start date"
                 end-placeholder="End date" value-format="x" />
             </el-form-item>
-
-            <el-form-item label="任务内容" prop="taskContent">
-              <el-input type="textarea" :rows="6" v-model="taskForm.taskContent" prefix-icon="el-icon-edit"></el-input>
+            <el-form-item prop="priority">
+              <el-radio-group v-model="taskForm.priority" label="请选择优先级">
+                <el-radio :label="1"></el-radio>
+                <el-radio :label="2"></el-radio>
+                <el-radio :label="3"></el-radio>
+              </el-radio-group>
+            </el-form-item>
+            <el-form-item label="任务内容" prop="task_description">
+              <el-input type="textarea" :rows="6" v-model="taskForm.task_description"
+                prefix-icon="el-icon-edit"></el-input>
             </el-form-item>
 
           </el-form>
@@ -496,12 +520,10 @@ const completestaus = computed({
 
       <!-- 任务列表项 -->
       <div class="task-list">
-        <div class="task-item "  
-        v-for="(item, index) in taskArray"
-        :class="{
-          'completed-task': item.isCompleted=='pending',
+        <div class="task-item " v-for="(item, index) in taskArray" :class="{
+          'completed-task': item.status == 'Completed',
           'task-item-selected': index === selectedTaskIndex,
-          'over-time': (item.isCompleted =='pending') && (item.end_date > convertToTimestamp(new Date()))
+          'over-time': (item.status !== 'completed') && (item.end_date < convertToTimestamp(new Date()))
         }" :key="index" @click="selectTask(index, item.task_id)">
           <el-text class="task-title">{{ item.task_title }}</el-text>
           <el-text class="task-content" truncated="true">{{ item.task_description }}</el-text>
@@ -529,7 +551,7 @@ const completestaus = computed({
         <div class="task-item"></div>
         <div class="task-item"></div>
         <div class="task-item"></div>
-        <div class="task-item"></div> 
+        <div class="task-item"></div>
       </div>
 
       <div class="alter-task-staus">
@@ -542,7 +564,7 @@ const completestaus = computed({
           <template #footer>
             <div class="dialog-footer">
               <el-button @click="taskCompleteVisible = false">返回</el-button>
-              <el-button type="primary" @click="completeTask">
+              <el-button type="primary" @click="handleCompleteTask">
                 确认
               </el-button>
             </div>
@@ -575,28 +597,28 @@ const completestaus = computed({
         <h3>任务详情</h3>
         <div class="detail-item">
           <span>任务名称</span>
-          <el-text> {{ taskDetail && taskDetail.title }}</el-text>
+          <el-text> {{ taskDetail && taskDetail.task_title }}</el-text>
         </div>
         <div class="detail-item">
           <span>状态:</span>
           <el-text>
-            {{ taskDetail && (taskDetail.isCompleted ? '已完成' : '待完成') }}
+            {{ taskDetail && (taskDetail.status == 'Completed' ? '已完成' : '待完成') }}
           </el-text>
         </div>
         <div class="detail-item">
           <span>任务内容:</span>
           <div class="task-content">
-            <el-text truncated="true">{{ taskDetail && taskDetail.description }}</el-text>
+            <el-text truncated="true">{{ taskDetail && taskDetail.task_description }}</el-text>
           </div>
         </div>
 
         <div class="detail-item">
           <span>开始时间:</span>
-          <el-text>{{ taskDetail && formatTimestamp(taskDetail.date) }}</el-text>
+          <el-text>{{ taskDetail && formatTimestamp(taskDetail.start_date) }}</el-text>
         </div>
         <div class="detail-item">
           <span>截止时间:</span>
-          <el-text>{{ taskDetail && formatTimestamp(taskDetail.date) }}</el-text>
+          <el-text>{{ taskDetail && formatTimestamp(taskDetail.end_date) }}</el-text>
         </div>
 
 
