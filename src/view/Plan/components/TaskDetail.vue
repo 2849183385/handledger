@@ -13,11 +13,12 @@ const props=defineProps({
 const taskDetail = computed(() => {
     return taskInfo.find(task => task.task_id === props.selectTaskId)
 })
+console.log(taskDetail.value)
 const completestaus = computed({
     get: () => {
-        if (!(taskDetail.value == null)) {
+    if (!(taskDetail.value == null)) {
             //如果截止时间小于当前时间，且任务未完成，则显示红色
-            if (taskDetail.value.end_date < convertToTimestamp(new Date()) && !taskDetail.value.status == 'completed')
+            if (taskDetail.value.end_date < convertToTimestamp(new Date()) && taskDetail.value.status != 'Completed')
                 return 'red'
             else {
                 return taskDetail.value.status == 'pending' ? 'green' : 'yellow'

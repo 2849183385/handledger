@@ -14,7 +14,7 @@ taskStore.getTasksById(user_id)
 const { taskInfo } = taskStore
 
 //-------------------------------------------------------------------------------------------------------------------------------
-const radio=ref(0)
+const radio = ref(0)
 // 任务数据
 let tasks = ref(taskInfo)
 console.log(tasks)
@@ -109,22 +109,19 @@ const taskArray = computed({
 //切换任务状态视图
 // 完成状态和未完成状态视图切换flag
 
-//切换逻辑
-function isCompleteTasks(value) {
+/**
+切换完成未完成视图逻辑
+*/
+function changeCompleteView(value) {
   // 切换任务完成状态后，高亮重置
   selectedTaskIndex.value = -1;
-
   isCompleteTask.value = parseInt(value)
   // 切换任务完成状态
   console.log(typeof isCompleteTask.value);
   console.log('isCompleteTasks被执行');
 }
 
-/**用来存储被选中要被修改的task-item组件*/
-//描述面板内容  通过Id筛选任务
-const taskDetail = computed(() => {
-  return tasks.value.find(task => task.task_id === selectTaskId.value)
-})
+
 /**用来存储被选中要被修改的task-item组件的ID*/
 const selectTaskId = ref(-1)
 watch(selectTaskId, () => {
@@ -143,7 +140,6 @@ function selectTask(index, id) {
   //筛选出描述面板内容
   selectTaskId.value = id;
   console.log(selectTaskId.value)
-  taskDetail.value = tasks.value.find(task => task.id === selectTaskId.value)
   //返回被选中任务的索引
   if (selectedTaskIndex.value === index) {
     selectedTaskIndex.value = -1; // 如果已经选中了任务，则取消选中
@@ -307,10 +303,10 @@ const submitForm = () => {
       // 表单验证通过，执行提交逻辑
       // await this.handleSubmit();
       addDialogVisible.value = false
-    } 
+    }
   });
 }
-function addTask(){
+function addTask() {
   addNewTaskAPI({
     task_description: taskForm.value.task_description,
     task_title: taskForm.value.task_title,
@@ -362,7 +358,7 @@ const handleCompleteTask = async () => {
   // 调用后端接口标记任务完成
   await taskStore.updateTaskStatus(user_id, selectTaskId.value, 'completed')
   taskCompleteVisible.value = false
-  
+
 }
 
 
@@ -436,15 +432,15 @@ function fetchTasks() {
           </el-button>
           <template #dropdown>
             <el-dropdown-menu>
-              <el-dropdown-item value="default" >默认排序</el-dropdown-item>
-              <el-dropdown-item value="bytime" >按时间排序</el-dropdown-item>
-              <el-dropdown-item value="byname" >按名称排序</el-dropdown-item>
+              <el-dropdown-item value="default">默认排序</el-dropdown-item>
+              <el-dropdown-item value="bytime">按时间排序</el-dropdown-item>
+              <el-dropdown-item value="byname">按名称排序</el-dropdown-item>
             </el-dropdown-menu>
           </template>
         </el-dropdown>
 
         <!-- 切换完成状态 -->
-        <el-radio-group v-model="radio" size="default" @change="isCompleteTasks">
+        <el-radio-group v-model="radio" size="default" @change="changeCompleteView">
           <el-radio style="border: none;" :label=0>未完成</el-radio>
           <el-radio style="border: none;" :label=1>已完成</el-radio>
         </el-radio-group>
@@ -452,18 +448,18 @@ function fetchTasks() {
 
       <!-- 添加任务 -->
       <div class="add-task" v-show="!isCompleteTask">
-        <el-input type="text" class="w-50 m-2" placeholder="添加你的任务吧" width="200px" @click="addDialogVisible=true "
+        <el-input type="text" class="w-50 m-2" placeholder="添加你的任务吧" width="200px" @click="addDialogVisible = true"
           @keyup.enter="addTask" ref="inputRef" :value="taskForm.task_title" />
         <el-button @click="addTask">添加</el-button>
       </div>
 
       <!-- 添加任务弹出层-->
       <div class="add-task-dialog">
-        <el-dialog :modal="false" :close-on-click-modal="false" v-model="addDialogVisible" title="添加你的任务" width="30%" center
-           :append-to-body="true" :lock-scroll="false">
+        <el-dialog :modal="false" :close-on-click-modal="false" v-model="addDialogVisible" title="添加你的任务" width="500px"
+          center :append-to-body="true" :lock-scroll="false">
           <!-- 添加任务表单 -->
-          <el-form hide-required-asterisk="true" :model="taskForm" :rules="rules" ref="taskFormRef" label-width="100px"
-            style="max-width: 600px; margin: 0 auto;">
+          <el-form :hide-required-asterisk="true" :model="taskForm" :rules="rules" ref="taskFormRef" label-width="80px"
+            style="max-width: 450px; margin: 0 auto;">
             <el-form-item label="任务名称" prop="task_title">
               <el-input v-model="taskForm.task_title" prefix-icon="el-icon-edit"></el-input>
             </el-form-item>
@@ -512,18 +508,21 @@ function fetchTasks() {
           'task-item-selected': index === selectedTaskIndex,
           'over-time': (item.status !== 'completed') && (item.end_date < convertToTimestamp(new Date()))
         }" :key="index" @click="selectTask(index, item.task_id)">
+
           <el-text class="task-title">{{ item.task_title }}</el-text>
           <el-text class="task-content" :truncated="true">{{ item.task_description }}</el-text>
           <el-text class="task-time">{{ formatTimestamp(item.end_date) }}</el-text>
-          <el-button type="primary" size="small" circle @click="openCompleteVisible(item.task_id)"><el-icon>
+          <el-button type="primary" size="small" circle @click="openCompleteVisible(item.task_id)" :disabled="isCompleteTask">
+            <el-icon>
               <check />
-            </el-icon></el-button>
-
+            </el-icon>
+          </el-button>
           <el-button type="danger" size="small" circle @click="openDeleteVisible(item.task_id)"><el-icon>
               <Delete />
-            </el-icon></el-button>
+            </el-icon>
+          </el-button>
         </div>
-        <div class="task-item"> </div>
+        <!-- <div class="task-item"> </div>
         <div class="task-item"></div>
         <div class="task-item"></div>
         <div class="task-item"></div>
@@ -538,7 +537,7 @@ function fetchTasks() {
         <div class="task-item"></div>
         <div class="task-item"></div>
         <div class="task-item"></div>
-        <div class="task-item"></div>
+        <div class="task-item"></div> -->
       </div>
 
       <div class="alter-task-staus">
@@ -575,7 +574,7 @@ function fetchTasks() {
         </el-dialog>
       </div>
     </div>
-   <TaskDetail :selectTaskId="selectTaskId"></TaskDetail>
+    <TaskDetail :selectTaskId="selectTaskId"></TaskDetail>
 
   </div>
 </template>
@@ -644,7 +643,6 @@ function fetchTasks() {
     .time-input {
       display: inline-block;
       width: 150px;
-
       vertical-align: middle;
     }
 
@@ -717,6 +715,17 @@ function fetchTasks() {
       }
     }
 
+    .add-task-dialog {
+      .el-dialog {
+        width: 400px;
+        height: 300px;
+
+        .el-form {
+          margin: 20px;
+        }
+      }
+    }
+
     //任务列表样式
     .task-list {
       margin: 0 15px;
@@ -731,7 +740,7 @@ function fetchTasks() {
         width: 750px;
         background-color: #fff;
 
-        .el-button {
+        .el-button-completed {
           display: none;
         }
 
