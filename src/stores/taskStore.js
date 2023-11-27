@@ -7,11 +7,11 @@ export const useTaskStore = defineStore('task', () => {
     const taskInfo=ref({})
     const getTasksById = async (user_id) => {
         const res = await getTaskInfoAPI(user_id)
-        taskInfo.value = res.data.data
+        setTaskInfo(res.data.data)
     }
     const updateTaskStatus = async (user_id,task_id,status) => {
         await updateTaskStatusAPI(user_id,task_id,status)
-        getTasksById(user_id)
+        await getTasksById(user_id)
     }
     const setTaskInfo = (obj) => {
         taskInfo.value = obj

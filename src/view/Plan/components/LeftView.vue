@@ -1,17 +1,17 @@
 <script setup >
 import { convertToTimestamp } from '@/utils/format';
-import { computed } from "vue";
+import { computed , toRefs } from "vue";
 import { useTaskStore } from "@/stores/taskStore";
 const taskStore = useTaskStore();
-const {taskInfo} = taskStore;
+const { taskInfo } = toRefs(taskStore);
+
 function isDeadline(time) {
     const date = new Date(time);
     return date.toDateString() === new Date().toDateString();
-    
 }
 const allTasks= computed({
     get: () => {
-        return (taskInfo.filter(task => task.is_delete == 0));
+        return (taskInfo.value.filter(task => task.is_delete == 0));
     },
 })
 const completedCount = computed({
@@ -22,20 +22,20 @@ const completedCount = computed({
 const slippageCount = computed({
     get: () => {
         // 超时的任务
-        return allTasks.value.filter(task => task.status !== 'completed' && (task.end_date < convertToTimestamp(new Date()))).length;
+        return allTasks.value.filter(task => task.status !== 'Completed' && (task.end_date < convertToTimestamp(new Date()))).length;
     },
 })
 //今天截止任务
 const deadlineCount = computed({
     get: () => {
         // 截止时间小于当前时间的任务
-        return allTasks.value.filter(task => task.status!== 'completed' && isDeadline(task.end_date )).length;
+        return allTasks.value.filter(task => task.status!== 'Completed' && isDeadline(task.end_date )).length;
     },
 })
-console.log(allTasks.value);
-console.log(completedCount.value);
-console.log(slippageCount.value);
-console.log(deadlineCount.value);
+// console.log(allTasks.value);
+// console.log(completedCount.value);
+// console.log(slippageCount.value);
+// console.log(deadlineCount.value);
 // console.log(new Date(1637942400).toDateString())
 </script>
 

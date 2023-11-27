@@ -1,9 +1,9 @@
 <script setup >
-import { ref, computed, watch } from 'vue'
+import { ref, computed,toRefs } from 'vue'
 import { formatTimestamp, convertToTimestamp } from '@/utils/format'
 import { useUserStore } from '@/stores/userStore'
 import { useTaskStore } from '@/stores/taskStore';
-import { addNewTaskAPI } from '@/apis/task'
+import { addNewTaskAPI , deleteTaskAPI } from '@/apis/task'
 import { ElMessage } from 'element-plus';
 import TaskDetail from './components/TaskDetail.vue';
 import LeftView from './components/LeftView.vue'
@@ -12,76 +12,27 @@ const { userInfo: { user_id } } = useUserStore()
 const taskStore = useTaskStore()
 // console.log(user_id)
 taskStore.getTasksById(user_id)
-const { taskInfo } = taskStore
+const { taskInfo } = toRefs(taskStore)
 
 //-------------------------------------------------------------------------------------------------------------------------------
-const radio = ref(0)
-// 任务数据
-let tasks = ref(taskInfo)
-console.log(tasks)
-// console.log(tasks[0].task_title)
-// console.log(taskStore)
-// console.log(taskInfo)
-// console.log(tasks.filter(task => task.task_title == 1221))
-// console.log(taskInfo)
-/*[{
-//   id: 1,
-//   title: '1吃饭',
-//   description: '吃饭dgdgsgdfgdfgewrgdzsftgwergvdfsgewrggedfdger',
-//   completedCount: 1,
-//   status: 0,
-//   date: 1641491200000,
-// }, {
-//   id: 2,
-//   title: '2吃饭',
-//   description: '吃饭dgdgsgdfgdfgewrgdzsftgwergvdfsgewrggedfdger',
-//   completedCount: 0,
-//   status: 0,
-//   date: 1731318200000,
-// },
-// {
-//   id: 3,
-//   title: '47睡觉',
-//   description: '睡觉',
-//   completedCount: 1,
-//   status: 0,
-//   date: 1631577600000,
-// }, {
-//   id: 4,
-//   title: '睡觉',
-//   description: '睡觉',
-//   completedCount: 1,
-//   status: 0,
-//   date: 1631664000000,
-// }, {
-//   id: 5,
-//   title: '睡觉',
-//   description: '睡觉',
-//   completedCount: 1,
-//   status: 1,
-//   date: 1631750400000,
-]}*/
+const  radio = ref(0)
+
 
 // 被删除的任务数组
 // const deleteTaskArray = computed(() => {
 //   return tasks.value.filter(task => task.is_delete === '1')
 // })
 
-
+//---------------------------------------s任务数据--------------------------------------------------------
+// 任务数据
+let tasks = ref(taskInfo)
+console.log(tasks.value)
 /** 含有未被删除的任务数组 缓存作用*/
 const taskArrays = computed(() => {
   return tasks.value.filter(task => task.is_delete == 0)
 })
-// console.log('taskArrays', taskArrays.value.filter(task => task.status == 'Pending'))
-// console.log('taskArrays', taskArrays.value.filter(task => task.status == 'Completed'))
-
-// 统计completedCount为1的数量
-
-// 统计status为1的数量
-
-
-
-const isCompleteTask = ref(0)
+/** 存储当前任务状态，default:0  value(0,1)*/
+var isCompleteTask = ref(0)
 //当前在任务未完成页面时，返回全部列表，当前在任务完成页面时，返回已完成任务组成的数组
 /**根isCompleteTask状态返回已完成或未完成任务的数据，用来渲染task-item组件*/
 const taskArray = computed({
@@ -99,58 +50,41 @@ const taskArray = computed({
     //   console.log(this, value);
   }
 })
-// console.log('taskArray', taskArray.value)
-// console.log(typeof taskArray.value[0].end_date)
-// console.log(formatTimestamp(1703001600000))
-// console.log(formatTimestamp(taskArray.value[0].end_date))
-//切换任务状态视图
-// 完成状态和未完成状态视图切换flag
 
 /**
 切换完成未完成视图逻辑
 */
-function changeCompleteView(value) {
+function triggerCompleteView(value) {
   // 切换任务完成状态后，高亮重置
   selectedTaskIndex.value = -1;
-  isCompleteTask.value = parseInt(value)
-  // 切换任务完成状态
-  console.log(typeof isCompleteTask.value);
-  console.log('isCompleteTasks被执行');
+  isCompleteTask.value = value
+  console.log('triggerCompleteView');
 }
-
-
 /**用来存储被选中要被修改的task-item组件的ID*/
-const selectTaskId = ref(-1)
-watch(selectTaskId, () => {
-
-})
+var selectTaskId = ref(-1)
 //任务被选中逻辑
 //在任务项中注册一个selectTask事件，任务被点击，则将被点击的任务索引存储到selectedTaskIndex中
 //通过selectedTaskIndex存储被选中的任务的索引
 //判断当前任务是否被选中
 //如果被选中，则高亮
 //如果未被选中，则取消高亮
-const selectedTaskIndex = ref(21)
+const selectedTaskIndex = ref(-1)
 
 function selectTask(index, id) {
   console.log('selectTask被执行')
   //筛选出描述面板内容
   selectTaskId.value = id;
-  console.log(selectTaskId.value)
+  console.log('selectTaskId',selectTaskId.value)
   //返回被选中任务的索引
   if (selectedTaskIndex.value === index) {
     selectedTaskIndex.value = -1; // 如果已经选中了任务，则取消选中
-    // console.log('selectTask', selectedTaskIndex.value);
   } else {
     selectedTaskIndex.value = index; // 选择被点击的任务
-    // console.log('selectTask', selectedTaskIndex.value);
   }
 }
 
+//-------------------------------------排序逻辑-----------------------------------------------------------------------------------------
 
-
-
-//-------------------------------------------------------------------------------------------------------------------------------
 //const sortWay=ref('default')
 /**按时间排序,直接修改taskArray这个计算属性不行，
 要通过修改tasks这个taskArray计算属性的依赖，间接修改taskArray*/
@@ -264,14 +198,8 @@ function handleCommand() {
 }*/
 
 
-//-------------------------------------------------------------------------------------------
-//切换任务完成状态
 
-
-//-------------------------------------------------------------------------------------------
-//添加任务视图逻辑
-
-
+//-----------------------------------------------添加任务逻辑--------------------------------------------
 //任务表单
 const taskForm = ref({
   task_title: '',
@@ -323,8 +251,7 @@ function addTask() {
 }
 
 
-
-//-----------------------------------------------------------------------------------------------------------------------------------
+//---------------------------------------弹窗视图逻辑--------------------------------------------------------------------------------------------
 // function addTask() {
 //   // 调用后端接口添加任务
 // }
@@ -333,9 +260,9 @@ function editTask(task) {
   // 调用后端接口编辑任务
 }
 
-const addDialogVisible = ref(false)
-const taskCompleteVisible = ref(false)
-const taskDeleteVisible = ref(false)
+var addDialogVisible = ref(false)
+var taskCompleteVisible = ref(false)
+var taskDeleteVisible = ref(false)
 
 /**
  * 打开任务完成的弹窗
@@ -346,18 +273,36 @@ function openCompleteVisible(taskId) {
   selectTaskId.value = taskId
   console.log('openCompleteVisible被调用', selectTaskId.value);
 }
-
 /**
  * 完成任务
  */
 const handleCompleteTask = async () => {
   // 调用后端接口标记任务完成
-  await taskStore.updateTaskStatus(user_id, selectTaskId.value, 'completed')
+  await taskStore.updateTaskStatus(user_id, selectTaskId.value, 'Completed')
+  taskStore.getTasksById(user_id)
   taskCompleteVisible.value = false
+}
+/**
+ * 打开任务删除的弹窗
+ * @param taskId
+ */
+function openDeleteVisible(taskId) {
+  taskDeleteVisible.value = true
+  selectTaskId.value = taskId
+  console.log('openDeleteVisible被调用', selectTaskId.value);
+}
+/**
+ * 删除任务
+ */
+const handleDeleteTask= async () => {
+  // 调用后端接口删除任务
+  await deleteTaskAPI(user_id, selectTaskId.value)
+  await taskStore.getTasksById(user_id)
+  ElMessage.success('删除成功');
+  taskDeleteVisible.value = false
+  console.log('deleteTask被调用', selectTaskId.value);
 
 }
-
-
 // function openDeleteVisible(taskId) {
 //   taskDeleteVisible.value = true
 //   selectTaskId.value = taskId
@@ -412,7 +357,7 @@ function fetchTasks() {
         </el-dropdown>
 
         <!-- 切换完成状态 -->
-        <el-radio-group v-model="radio" size="default" @change="changeCompleteView">
+        <el-radio-group v-model="radio" size="default" @change="triggerCompleteView">
           <el-radio style="border: none;" :label=0>未完成</el-radio>
           <el-radio style="border: none;" :label=1>已完成</el-radio>
         </el-radio-group>
@@ -475,10 +420,10 @@ function fetchTasks() {
 
       <!-- 任务列表项 -->
       <div class="task-list">
-        <div class="task-item " v-for="(item, index) in taskArray" :class="{
+        <div class="task-item" v-for="(item, index) in taskArray" :class="{
           'completed-task': item.status == 'Completed',
           'task-item-selected': index === selectedTaskIndex,
-          'over-time': (item.status !== 'completed') && (item.end_date < convertToTimestamp(new Date()))
+          'over-time': (item.status !== 'Completed') && (item.end_date < convertToTimestamp(new Date()))
         }" :key="index" @click="selectTask(index, item.task_id)">
 
           <el-text class="task-title">{{ item.task_title }}</el-text>
@@ -538,7 +483,7 @@ function fetchTasks() {
           <template #footer>
             <div class="dialog-footer">
               <el-button @click="taskDeleteVisible = false">返回</el-button>
-              <el-button type="primary" @click="deleteTask">
+              <el-button type="primary" @click="handleDeleteTask">
                 确认
               </el-button>
             </div>
@@ -546,6 +491,7 @@ function fetchTasks() {
         </el-dialog>
       </div>
     </div>
+
     <TaskDetail :selectTaskId="selectTaskId"></TaskDetail>
 
   </div>
@@ -558,9 +504,6 @@ function fetchTasks() {
   flex-direction: row;
   position: relative;
   justify-content: flex-start;
-
- 
- 
 
   .el-dialog {
     .time-input {

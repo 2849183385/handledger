@@ -33,3 +33,15 @@ export const addNewTaskAPI = (data) => {
         data
     })
 }
+
+//删除任务
+export const deleteTaskAPI = (user_id, task_id) => {
+    return request({
+        method: 'delete',
+        url: `/task/deleteTask`,
+        data: {
+            task_id,
+            creator_id:user_id
+        }
+    })
+}
