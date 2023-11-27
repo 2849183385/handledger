@@ -113,8 +113,8 @@ watch(isLogin, () => {
       <!-- 登录表单 -->
       <div class="form" v-if="isLogin">
         <h1>Hand Ledger</h1>
-        <el-form hide-required-asterisk="true" ref="formRef" :model="form" class="demo-form-inline"
-          :label-position="labelPosition" label-width="55px" :size="size" :rules="rules" scroll-to-error="true"
+        <el-form :hide-required-asterisk="true" ref="formRef" :model="form" class="demo-form-inline"
+           label-width="55px" :size="size" :rules="rules" :scroll-to-error="true"
           style="max-width: 500px">
 
           <!-- prop='验证规则' -->
@@ -134,7 +134,7 @@ watch(isLogin, () => {
       <!-- 注册表单 -->
       <div class="form" v-else>
         <h1>Hand Ledger</h1>
-        <el-form hide-required-asterisk="true" ref="formRef" :model="form" class="demo-form-inline" :label-position="left"
+        <el-form :hide-required-asterisk="true" ref="formRef" :model="form" class="demo-form-inline" :label-position="left"
           label-width="80px" :size="size" :rules="rules" scroll-to-error="true" style="max-width: 500px">
           <el-form-item prop="account" label="账号">
             <el-input v-model="form.account" placeholder="请输入账号" clearable />

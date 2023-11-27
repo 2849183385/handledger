@@ -32,11 +32,6 @@ const deadlineCount = computed({
         return allTasks.value.filter(task => task.status!== 'Completed' && isDeadline(task.end_date )).length;
     },
 })
-// console.log(allTasks.value);
-// console.log(completedCount.value);
-// console.log(slippageCount.value);
-// console.log(deadlineCount.value);
-// console.log(new Date(1637942400).toDateString())
 </script>
 
 <template>
@@ -48,15 +43,15 @@ const deadlineCount = computed({
               <li style="">
                 <!-- <span>{{ taskArrays && taskArrays.length}}</span> -->
                 <span>{{ allTasks.length }}</span>
-                <span>task</span>
+                <span>总任务</span>
               </li>
               <li style="background-color: #e1a14d;">
                 <span>{{ deadlineCount }}</span>
                 <span>今日截至</span>
               </li>
               <li>
-                <span>{{ slippageCount }}</span>
-                <span>逾期</span>
+                <span style="color: #ea5200;">{{ slippageCount }}</span>
+                <span >逾期</span>
               </li>
               <li>
                 <span>{{ completedCount }}</span>

@@ -34,7 +34,8 @@ request.interceptors.response.use(
             useStore.removeToken
             router.push('/login')
         }
-        ElMessage.error(response.data.message || '服务异常')
+        console.log(response.data)
+        ElMessage.error(response.data || '服务异常')
         return Promise.reject(response.data)
         
     },

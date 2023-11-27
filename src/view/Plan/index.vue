@@ -1,9 +1,9 @@
 <script setup >
-import { ref, computed,toRefs } from 'vue'
+import { ref, computed, toRefs } from 'vue'
 import { formatTimestamp, convertToTimestamp } from '@/utils/format'
 import { useUserStore } from '@/stores/userStore'
 import { useTaskStore } from '@/stores/taskStore';
-import { addNewTaskAPI , deleteTaskAPI } from '@/apis/task'
+import { addNewTaskAPI, deleteTaskAPI } from '@/apis/task'
 import { ElMessage } from 'element-plus';
 import TaskDetail from './components/TaskDetail.vue';
 import LeftView from './components/LeftView.vue'
@@ -15,7 +15,7 @@ taskStore.getTasksById(user_id)
 const { taskInfo } = toRefs(taskStore)
 
 //-------------------------------------------------------------------------------------------------------------------------------
-const  radio = ref(0)
+const radio = ref(0)
 
 
 // 被删除的任务数组
@@ -61,7 +61,7 @@ function triggerCompleteView(value) {
   console.log('triggerCompleteView');
 }
 /**用来存储被选中要被修改的task-item组件的ID*/
-var selectTaskId = ref(-1)
+const selectTaskId = ref(-1)
 //任务被选中逻辑
 //在任务项中注册一个selectTask事件，任务被点击，则将被点击的任务索引存储到selectedTaskIndex中
 //通过selectedTaskIndex存储被选中的任务的索引
@@ -74,7 +74,7 @@ function selectTask(index, id) {
   console.log('selectTask被执行')
   //筛选出描述面板内容
   selectTaskId.value = id;
-  console.log('selectTaskId',selectTaskId.value)
+  console.log('selectTaskId', selectTaskId.value)
   //返回被选中任务的索引
   if (selectedTaskIndex.value === index) {
     selectedTaskIndex.value = -1; // 如果已经选中了任务，则取消选中
@@ -117,6 +117,21 @@ function sortByDate(arr) {
 //   });
 //   // console.log(newArr)
 // }
+//按优先级排序
+function sortByPriority(arr) {
+  console.log('sortByPriority被调用');
+  const newArr = [...arr];
+  newArr.sort((a, b) => {
+    if (a.priority > b.priority) {
+      return -1;
+    }
+    if (a.priority < b.priority) {
+      return 1;
+    }
+    return 0;
+  });
+  return newArr;
+}
 // //按名称排序
 function sortByTitle(arr) {
   console.log('sortByTitle被调用');
@@ -143,11 +158,16 @@ function handleCommand() {
       console.log('default执行', tasks)
       break;
     case 'bytime':
-      tasks.value = sortByDate([...tasks]);
+      console.log(tasks.value)
+      tasks.value = sortByDate([...tasks.value]);
       console.log(tasks, 'bytime执行')
       break;
+    case 'bypriority':
+      tasks.value = sortByPriority([...tasks.value]);
+      console.log('bypriority执行', taskArray.value)
+      break;
     case 'byname':
-      tasks.value = sortByTitle([...tasks]);
+      tasks.value = sortByTitle([...tasks.value]);
       console.log('byname执行', taskArray.value)
       break;
     default:
@@ -294,7 +314,7 @@ function openDeleteVisible(taskId) {
 /**
  * 删除任务
  */
-const handleDeleteTask= async () => {
+const handleDeleteTask = async () => {
   // 调用后端接口删除任务
   await deleteTaskAPI(user_id, selectTaskId.value)
   await taskStore.getTasksById(user_id)
@@ -303,38 +323,12 @@ const handleDeleteTask= async () => {
   console.log('deleteTask被调用', selectTaskId.value);
 
 }
-// function openDeleteVisible(taskId) {
-//   taskDeleteVisible.value = true
-//   selectTaskId.value = taskId
-//   console.log('openDeleteVisible被调用', selectTaskId.value);
-// }
-/**
- * 删除任务
- * @param taskId
- */
-// function deleteTask() {
-//   // 调用后端接口删除任务
-//   tasks.value[selectTaskId.value].status = '1'
-//   taskDeleteVisible.value = false
-//   console.log('deleteTask被调用', selectTaskId.value);
-
-// }
-
-// eslint-disable-next-line no-unused-vars
-function fetchTasks() {
-  // 调用后端接口获取任务列表
-}
-//处理排序
-
-//---------------------------------------------------------------------------------------------------------------
-
-
 </script> 
 
 <template>
   <div class="container">
 
-   <LeftView></LeftView>
+    <LeftView></LeftView>
 
     <!-- 任务内容盒子 -->
     <div class="content">
@@ -350,8 +344,10 @@ function fetchTasks() {
           <template #dropdown>
             <el-dropdown-menu>
               <el-dropdown-item value="default">默认排序</el-dropdown-item>
-              <el-dropdown-item value="bytime">按时间排序</el-dropdown-item>
               <el-dropdown-item value="byname">按名称排序</el-dropdown-item>
+              <el-dropdown-item value="bypriority">按优先级排序</el-dropdown-item>
+              <el-dropdown-item value="bytime">按截止时间排序</el-dropdown-item>
+
             </el-dropdown-menu>
           </template>
         </el-dropdown>
@@ -370,43 +366,7 @@ function fetchTasks() {
         <el-button @click="addTask">添加</el-button>
       </div>
 
-      <!-- 添加任务弹出层-->
-      <div class="add-task-dialog">
-        <el-dialog :modal="false" :close-on-click-modal="false" v-model="addDialogVisible" title="添加你的任务" width="500px"
-          center :append-to-body="true" :lock-scroll="false">
-          <!-- 添加任务表单 -->
-          <el-form :hide-required-asterisk="true" :model="taskForm" :rules="rules" ref="taskFormRef" label-width="80px"
-            style="max-width: 450px; margin: 0 auto;">
-            <el-form-item label="任务名称" prop="task_title">
-              <el-input v-model="taskForm.task_title" prefix-icon="el-icon-edit"></el-input>
-            </el-form-item>
-
-            <el-form-item label="预估时间" prop="estimatedTime">
-              <el-date-picker v-model="taskForm.estimatedTime" type="datetimerange" start-placeholder="Start date"
-                end-placeholder="End date" value-format="x" />
-            </el-form-item>
-            <el-form-item prop="priority">
-              <el-radio-group v-model="taskForm.priority" label="请选择优先级">
-                <el-radio :label="1"></el-radio>
-                <el-radio :label="2"></el-radio>
-                <el-radio :label="3"></el-radio>
-              </el-radio-group>
-            </el-form-item>
-            <el-form-item label="任务内容" prop="task_description">
-              <el-input type="textarea" :rows="6" v-model="taskForm.task_description"
-                prefix-icon="el-icon-edit"></el-input>
-            </el-form-item>
-
-          </el-form>
-
-          <template #footer>
-            <span class="dialog-footer">
-              <el-button @click="addDialogVisible = false">返回</el-button>
-              <el-button type="primary" @click="submitForm()">提交</el-button>
-            </span>
-          </template>
-        </el-dialog>
-      </div>
+      
       <!-- <ul>
         <li v-for="task in tasks" :key="task.id">
           {{ task.name }}
@@ -425,11 +385,11 @@ function fetchTasks() {
           'task-item-selected': index === selectedTaskIndex,
           'over-time': (item.status !== 'Completed') && (item.end_date < convertToTimestamp(new Date()))
         }" :key="index" @click="selectTask(index, item.task_id)">
-
           <el-text class="task-title">{{ item.task_title }}</el-text>
           <el-text class="task-content" :truncated="true">{{ item.task_description }}</el-text>
           <el-text class="task-time">{{ formatTimestamp(item.end_date) }}</el-text>
-          <el-button type="primary" size="small" circle @click="openCompleteVisible(item.task_id)" :disabled="isCompleteTask?true:false">
+          <el-button type="primary" size="small" circle @click="openCompleteVisible(item.task_id)"
+            :disabled="isCompleteTask ? true : false">
             <el-icon>
               <check />
             </el-icon>
@@ -438,6 +398,10 @@ function fetchTasks() {
               <Delete />
             </el-icon>
           </el-button>
+          <div class="priority-icon">
+            <el-icon v-for="index in item.priority" :key="index" ><StarFilled /></el-icon>
+          </div>
+          
         </div>
         <!-- <div class="task-item"> </div>
         <div class="task-item"></div>
@@ -458,9 +422,48 @@ function fetchTasks() {
       </div>
 
       <div class="alter-task-staus">
+
+        <!-- 添加任务弹出层-->
+        <div class="add-task-dialog">
+          <el-dialog :modal="false" :close-on-click-modal="false" v-model="addDialogVisible" title="添加你的任务" width="500px"
+            center :append-to-body="true" :lock-scroll="false" style="border-radius: 5px;">
+            <!-- 添加任务表单 -->
+            <el-form :hide-required-asterisk="true" :model="taskForm" :rules="rules" ref="taskFormRef" label-width="80px"
+              style="max-width: 450px; margin: 0 auto;">
+              <el-form-item label="任务名称" prop="task_title">
+                <el-input v-model="taskForm.task_title" prefix-icon="el-icon-edit"></el-input>
+              </el-form-item>
+
+              <el-form-item label="预估时间" prop="estimatedTime">
+                <el-date-picker v-model="taskForm.estimatedTime" type="datetimerange" start-placeholder="Start date"
+                  end-placeholder="End date" value-format="x" />
+              </el-form-item>
+              <el-form-item prop="priority">
+                <el-radio-group v-model="taskForm.priority" label="请选择优先级">
+                  <el-radio :label="1"></el-radio>
+                  <el-radio :label="2"></el-radio>
+                  <el-radio :label="3"></el-radio>
+                </el-radio-group>
+              </el-form-item>
+              <el-form-item label="任务内容" prop="task_description">
+                <el-input type="textarea" :rows="6" v-model="taskForm.task_description"
+                  prefix-icon="el-icon-edit"></el-input>
+              </el-form-item>
+
+            </el-form>
+
+            <template #footer>
+              <span class="dialog-footer">
+                <el-button @click="addDialogVisible = false">返回</el-button>
+                <el-button type="primary" @click="submitForm()">提交</el-button>
+              </span>
+            </template>
+          </el-dialog>
+        </div>
+
         <!-- 完成任务确认对话框 -->
-        <el-dialog v-model="taskCompleteVisible" y width="15%" center :modal="false" :lock-scroll="false"
-          :append-to-bod="true">
+        <el-dialog class="comfirm-dialog" v-model="taskCompleteVisible" y width="250px" center :modal="false" :lock-scroll="false"
+          :append-to-bod="true" style="border-radius: 5px;">
           <template #default>
             <p style="text-align: center;">已完成任务？</p>
           </template>
@@ -475,8 +478,8 @@ function fetchTasks() {
         </el-dialog>
 
         <!-- 删除任务对话框 -->
-        <el-dialog v-model="taskDeleteVisible" width="15%" center :modal="false" :lock-scroll="false"
-          :append-to-bod="true">
+        <el-dialog  class="delete-dialog" v-model="taskDeleteVisible" width="200px" center :modal="false" :lock-scroll="false"
+          :append-to-bod="true" style="border-radius: 5px;">
           <template #default>
             <p style="text-align: center;">删除任务？</p>
           </template>
@@ -491,7 +494,7 @@ function fetchTasks() {
         </el-dialog>
       </div>
     </div>
-
+    
     <TaskDetail :selectTaskId="selectTaskId"></TaskDetail>
 
   </div>
@@ -581,16 +584,7 @@ function fetchTasks() {
       }
     }
 
-    .add-task-dialog {
-      .el-dialog {
-        width: 400px;
-        height: 300px;
-
-        .el-form {
-          margin: 20px;
-        }
-      }
-    }
+  
 
     //任务列表样式
     .task-list {
@@ -637,14 +631,16 @@ function fetchTasks() {
 
         .el-button {
           margin-left: 0;
-          margin-right: 40px;
+          margin-right: 30px;
         }
 
         .el-text {
           flex: 1;
+          margin: 0 5px;
         }
 
         .task-title {
+          margin-left: 10px;
           text-align: center;
           flex: 1;
 
@@ -653,16 +649,21 @@ function fetchTasks() {
         .task-content {
           flex: 7;
           margin-right: 50px;
+          margin-left: 50px;
         }
 
         .task-time {
           flex: 2;
         }
+        .priority-icon{
+          margin-right: 10px;
+          flex: 1;
+        }
       }
 
       //任务超时样式
-      .over-time {
-        background-color: #c4463d7e;
+      .over-time {    
+        background-color: #ea520031;
       }
 
       //任务被选中高亮样式
@@ -674,10 +675,8 @@ function fetchTasks() {
     }
 
     .alter-task-staus {
-
-      .el-dialog__body {
-        text-align: center;
-      }
+    
+     
 
     }
   }
