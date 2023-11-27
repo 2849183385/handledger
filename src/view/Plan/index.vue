@@ -6,6 +6,7 @@ import { useTaskStore } from '@/stores/taskStore';
 import { addNewTaskAPI } from '@/apis/task'
 import { ElMessage } from 'element-plus';
 import TaskDetail from './components/TaskDetail.vue';
+import LeftView from './components/LeftView.vue'
 const { userInfo: { user_id } } = useUserStore()
 // console.log(user_id)
 const taskStore = useTaskStore()
@@ -71,15 +72,11 @@ console.log(tasks)
 const taskArrays = computed(() => {
   return tasks.value.filter(task => task.is_delete == 0)
 })
-console.log('taskArrays', taskArrays.value.filter(task => task.status == 'Pending'))
-console.log('taskArrays', taskArrays.value.filter(task => task.status == 'Completed'))
+// console.log('taskArrays', taskArrays.value.filter(task => task.status == 'Pending'))
+// console.log('taskArrays', taskArrays.value.filter(task => task.status == 'Completed'))
 
 // 统计completedCount为1的数量
-const completedCount = computed({
-  get: () => {
-    return (tasks.value.filter(task => task.is_delete == 0)).filter(task => task.is_Complateded === 'Completed').length;
-  },
-})
+
 // 统计status为1的数量
 
 
@@ -354,7 +351,6 @@ function openCompleteVisible(taskId) {
  * 完成任务
  */
 const handleCompleteTask = async () => {
-  console.log('completedCount:', completedCount);
   // 调用后端接口标记任务完成
   await taskStore.updateTaskStatus(user_id, selectTaskId.value, 'completed')
   taskCompleteVisible.value = false
@@ -393,31 +389,7 @@ function fetchTasks() {
 <template>
   <div class="container">
 
-    <!-- 全部任务盒子 -->
-    <div class="all-task">
-      <h2>所有任务</h2>
-      <div class="all-task_item">
-        <ul>
-          <li style="">
-            <!-- <span>{{ taskArrays && taskArrays.length}}</span> -->
-            <span>task</span>
-          </li>
-          <li style="background-color: #e1a14d;">
-            <span>1</span>
-            <span>今日截至</span>
-          </li>
-          <li>
-            <span>1</span>
-            <span>逾期</span>
-          </li>
-          <li>
-            <span></span>
-            <span>已完成</span>
-          </li>
-        </ul>
-      </div>
-    </div>
-    <el-calendar />
+   <LeftView></LeftView>
 
     <!-- 任务内容盒子 -->
     <div class="content">
@@ -512,7 +484,7 @@ function fetchTasks() {
           <el-text class="task-title">{{ item.task_title }}</el-text>
           <el-text class="task-content" :truncated="true">{{ item.task_description }}</el-text>
           <el-text class="task-time">{{ formatTimestamp(item.end_date) }}</el-text>
-          <el-button type="primary" size="small" circle @click="openCompleteVisible(item.task_id)" :disabled="isCompleteTask">
+          <el-button type="primary" size="small" circle @click="openCompleteVisible(item.task_id)" :disabled="isCompleteTask?true:false">
             <el-icon>
               <check />
             </el-icon>
@@ -587,57 +559,8 @@ function fetchTasks() {
   position: relative;
   justify-content: flex-start;
 
-  //日历样式
-  .el-calendar {
-    border-radius: 5px;
-    margin-left: 15px;
-    margin-right: 15px;
-    width: 300px;
-    position: absolute;
-    left: 0;
-    top: 160px;
-    --el-calendar-cell-width: 35px;
-  }
-
-  .all-task {
-    margin-left: 15px;
-    height: 120px;
-    display: flex;
-    flex-direction: column;
-    margin-right: 30px;
-
-    .all-task_item {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-
-      ul {
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-        justify-content: center;
-
-        li {
-          overflow: hidden;
-          background-color: #dbe8f6;
-          display: flex;
-          padding: 9px 13px;
-          margin-right: 5px;
-          line-height: 100%;
-          border-radius: 5px;
-          height: 60px;
-          flex-direction: column;
-
-
-          span {
-            padding-top: 5px;
-            flex: 1;
-          }
-        }
-      }
-    }
-  }
+ 
+ 
 
   .el-dialog {
     .time-input {

@@ -27,25 +27,20 @@ request.interceptors.request.use( config =>{
 request.interceptors.response.use(
     //服务器返回数据不正常则进行另外处理
     response => {
+        const useStore = useUserStore()
         // 如果响应回来的status为0 说明登录成功，否则不成功
         if (response.data.status === 0) return response
-       
-        ElMessage.error(response.data.message || '服务异常')
-        return Promise.reject(response.data)
-    },
-    error => {
-        const useStore = useUserStore()
-        
-        // 返回状态码会触发该函数。
-        // 对响应错误做点什么
-        if (error.response?.status === 401) {
-            useStore.removeTo
+        if (response.data.status == 401) {
+            useStore.removeToken
             router.push('/login')
         }
-        ElMessage({
-            type: 'warning',
-            message: error.response.data.message
-        })
+        ElMessage.error(response.data.message || '服务异常')
+        return Promise.reject(response.data)
+        
+    },
+    error => {     
+        // 返回状态码会触发该函数。
+        // 对响应错误做点什么
         return Promise.reject(error)
     } 
 )

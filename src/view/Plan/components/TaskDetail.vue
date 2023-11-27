@@ -13,7 +13,7 @@ const props=defineProps({
 const taskDetail = computed(() => {
     return taskInfo.find(task => task.task_id === props.selectTaskId)
 })
-console.log(taskDetail.value)
+console.log(taskDetail)
 const completestaus = computed({
     get: () => {
     if (!(taskDetail.value == null)) {
