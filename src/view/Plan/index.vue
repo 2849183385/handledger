@@ -3,10 +3,11 @@ import { ref, computed, toRefs } from 'vue'
 import { formatTimestamp, convertToTimestamp } from '@/utils/format'
 import { useUserStore } from '@/stores/userStore'
 import { useTaskStore } from '@/stores/taskStore';
-import { addNewTaskAPI, deleteTaskAPI } from '@/apis/task'
+import { addNewTaskAPI, deleteTaskAPI, updateTaskAPI } from '@/apis/task'
 import { ElMessage } from 'element-plus';
 import TaskDetail from './components/TaskDetail.vue';
 import LeftView from './components/LeftView.vue'
+import { Operation, Check, Delete } from '@element-plus/icons-vue';
 const { userInfo: { user_id } } = useUserStore()
 // console.log(user_id)
 const taskStore = useTaskStore()
@@ -45,17 +46,29 @@ const taskArray = computed({
       return taskArrays.value.filter(task => task.status == 'Completed')
     }
   },
-  set: () => {
-    //   this.value = value
-    //   console.log(this, value);
-  }
 })
-
+//--------------------------------------分页功能逻辑--------------------------------------------------------------
+/**当前页码*/
+const currentPage = ref(1)
+/**每页显示的任务数量*/
+const pageSize = ref(17)
+const handlePageChange = (page) => {
+  currentPage.value = page // 更新当前页码
+  const startIndex = (page - 1) * pageSize.value // 计算当前页的起始索引
+  const endIndex = startIndex + pageSize.value// 计算当前页的结束索引
+  currentPageTasks.value = taskArray.value.slice(startIndex, endIndex) // 获取当前页的任务列表
+}
+const currentPageTasks = computed(() => {
+  const startIndex = (currentPage.value - 1) * pageSize.value // 计算当前页的起始索引
+  const endIndex = startIndex + pageSize.value // 计算当前页的结束索引
+  return taskArray.value.slice(startIndex, endIndex) // 获取当前页的任务列表
+})
 /**
 切换完成未完成视图逻辑
 */
 function triggerCompleteView(value) {
   // 切换任务完成状态后，高亮重置
+  currentPage.value = 1
   selectedTaskIndex.value = -1;
   isCompleteTask.value = value
   console.log('triggerCompleteView');
@@ -71,7 +84,6 @@ const selectTaskId = ref(-1)
 const selectedTaskIndex = ref(-1)
 
 function selectTask(index, id) {
-  console.log('selectTask被执行')
   //筛选出描述面板内容
   selectTaskId.value = id;
   console.log('selectTaskId', selectTaskId.value)
@@ -84,7 +96,6 @@ function selectTask(index, id) {
 }
 
 //-------------------------------------排序逻辑-----------------------------------------------------------------------------------------
-
 //const sortWay=ref('default')
 /**按时间排序,直接修改taskArray这个计算属性不行，
 要通过修改tasks这个taskArray计算属性的依赖，间接修改taskArray*/
@@ -137,10 +148,10 @@ function sortByTitle(arr) {
   console.log('sortByTitle被调用');
   const newArr = [...arr];
   newArr.sort((a, b) => {
-    if (a.task_title < b.task_title) {
+    if (a.task_title > b.task_title) {
       return -1;
     }
-    if (a.task_title > b.task_title) {
+    if (a.task_title < b.task_title) {
       return 1;
     }
     return 0;
@@ -174,18 +185,6 @@ function handleCommand() {
       break;
   }
 }
-// const sortDate = computed(() => {
-//   return taskArray.value.sort((a, b) => {
-//     return new Date(a.date).getTime() - new Date(b.date).getTime()
-//   })
-// })
-
-// const sortTitle = computed(() => {
-//   return taskArray.value.sort((a, b) => {
-//     return a.title.localeCompare(b.title)
-//   })
-// })
-
 //-------------------------------------------------------------------------------------------
 /* 全选反全选功能
 // const selectedTasks = ref([])
@@ -269,21 +268,31 @@ function addTask() {
   }
   ElMessage.success('添加成功');
 }
-
-
-//---------------------------------------弹窗视图逻辑--------------------------------------------------------------------------------------------
-// function addTask() {
-//   // 调用后端接口添加任务
-// }
-// eslint-disable-next-line no-unused-vars
-function editTask(task) {
-  // 调用后端接口编辑任务
+const editorFormRef = ref(null)
+const taskDetail = (obj) => {
+  editorForm.value = obj
+  editorForm.value.estimatedTime = [obj.start_date, obj.end_date]
+  console.log('taskDetail被调用', editorForm.value);
 }
 
+const editorForm = ref({})
+function editTask() {
+  console.log('editTask被调用');
+  editorFormRef.value.validate(async (valid) => {
+    if (valid) {
+      // 表单验证通过，执行提交逻辑
+      // await this.handleSubmit();
+      handleEditTask()
+      editTaskVisible.value = false
+    }
+  });
+}
+
+//---------------------------------------弹窗视图逻辑--------------------------------------------------------------------------------------------
 var addDialogVisible = ref(false)
 var taskCompleteVisible = ref(false)
 var taskDeleteVisible = ref(false)
-
+var editTaskVisible = ref(false)
 /**
  * 打开任务完成的弹窗
  * @param taskId
@@ -321,7 +330,27 @@ const handleDeleteTask = async () => {
   ElMessage.success('删除成功');
   taskDeleteVisible.value = false
   console.log('deleteTask被调用', selectTaskId.value);
-
+}
+function openEditVisible(taskId) {
+  editTaskVisible.value = true
+  console.log('openEditVisible被调用', selectTaskId.value);
+  selectTaskId.value = taskId
+}
+const handleEditTask = async () => {
+  // 调用后端接口编辑任务
+  await updateTaskAPI({
+    task_description: editorForm.value.task_description,
+    task_title: editorForm.value.task_title,
+    priority: editorForm.value.priority,
+    start_date: editorForm.value.estimatedTime[0],
+    end_date: editorForm.value.estimatedTime[1],
+    task_id: editorForm.value.task_id,
+    creator_id: user_id,
+  })
+  taskStore.getTasksById(user_id)
+  editTaskVisible.value = false
+  ElMessage.success('修改成功');
+  console.log('editTask被调用', selectTaskId.value);
 }
 </script> 
 
@@ -360,13 +389,13 @@ const handleDeleteTask = async () => {
       </div>
 
       <!-- 添加任务 -->
-      <div class="add-task" v-show="!isCompleteTask">
-        <el-input type="text" class="w-50 m-2" placeholder="添加你的任务吧" width="200px" @click="addDialogVisible = true"
-          @keyup.enter="addTask" ref="inputRef" :value="taskForm.task_title" />
-        <el-button @click="addTask">添加</el-button>
+      <div class="add-task">
+        <el-input v-show="!isCompleteTask" type="text" class="w-50 m-2" placeholder="添加你的任务吧" width="200px"
+          @click="addDialogVisible = true" @keyup.enter="addTask" ref="inputRef" :value="taskForm.task_title" />
+        <el-button v-show="!isCompleteTask" @click="addTask">添加</el-button>
       </div>
 
-      
+
       <!-- <ul>
         <li v-for="task in tasks" :key="task.id">
           {{ task.name }}
@@ -380,45 +409,34 @@ const handleDeleteTask = async () => {
 
       <!-- 任务列表项 -->
       <div class="task-list">
-        <div class="task-item" v-for="(item, index) in taskArray" :class="{
+        <div class="task-item" v-for="(item, index) in currentPageTasks" :class="{
           'completed-task': item.status == 'Completed',
           'task-item-selected': index === selectedTaskIndex,
           'over-time': (item.status !== 'Completed') && (item.end_date < convertToTimestamp(new Date()))
         }" :key="index" @click="selectTask(index, item.task_id)">
-          <el-text class="task-title">{{ item.task_title }}</el-text>
+          <el-text class="task-title" :truncated="true" >{{ item.task_title }}</el-text>
           <el-text class="task-content" :truncated="true">{{ item.task_description }}</el-text>
           <el-text class="task-time">{{ formatTimestamp(item.end_date) }}</el-text>
           <el-button type="primary" size="small" circle @click="openCompleteVisible(item.task_id)"
-            :disabled="isCompleteTask ? true : false">
-            <el-icon>
-              <check />
-            </el-icon>
+            :disabled="isCompleteTask ? true : false" :icon="Check">
           </el-button>
-          <el-button type="danger" size="small" circle @click="openDeleteVisible(item.task_id)"><el-icon>
-              <Delete />
-            </el-icon>
+          <el-button type="danger" size="small" circle @click="openDeleteVisible(item.task_id)" :icon="Delete"
+            :disabled="isCompleteTask ? true : false">
           </el-button>
           <div class="priority-icon">
-            <el-icon v-for="index in item.priority" :key="index" ><StarFilled /></el-icon>
+            <el-icon v-for="index in item.priority" :key="index">
+              <StarFilled />
+            </el-icon>
           </div>
-          
+          <el-button text circle @click="openEditVisible(item.task_id)" v-show="selectTaskId == item.task_id"
+            :icon="Operation">
+          </el-button>
         </div>
-        <!-- <div class="task-item"> </div>
-        <div class="task-item"></div>
-        <div class="task-item"></div>
-        <div class="task-item"></div>
-        <div class="task-item"></div>
-        <div class="task-item"></div>
-        <div class="task-item"></div>
-        <div class="task-item"></div>
-        <div class="task-item"></div>
-        <div class="task-item"></div>
-        <div class="task-item"></div>
-        <div class="task-item"></div>
-        <div class="task-item"></div>
-        <div class="task-item"></div>
-        <div class="task-item"></div>
-        <div class="task-item"></div> -->
+        <div class="task-item" v-for="item in pageSize - currentPageTasks.length" :key="item"> </div>
+        <div class="task-item" style="height: 50px;">
+          <el-pagination layout="prev, pager, next" :current-page="currentPage" :default-page-size="pageSize"
+            :total="taskArray.length" :hide-on-single-page="true" @current-change="handlePageChange" />
+        </div>
       </div>
 
       <div class="alter-task-staus">
@@ -462,8 +480,8 @@ const handleDeleteTask = async () => {
         </div>
 
         <!-- 完成任务确认对话框 -->
-        <el-dialog class="comfirm-dialog" v-model="taskCompleteVisible" y width="250px" center :modal="false" :lock-scroll="false"
-          :append-to-bod="true" style="border-radius: 5px;">
+        <el-dialog class="comfirm-dialog" v-model="taskCompleteVisible" width="250px" center :modal="false"
+          :lock-scroll="false" :append-to-bod="true" style="border-radius: 5px;">
           <template #default>
             <p style="text-align: center;">已完成任务？</p>
           </template>
@@ -477,9 +495,45 @@ const handleDeleteTask = async () => {
           </template>
         </el-dialog>
 
+        <!-- 编辑任务对话框 -->
+        <div class="add-task-dialog">
+          <el-dialog :modal="false" :close-on-click-modal="false" v-model="editTaskVisible" title="编辑你的任务" width="500px"
+            center :append-to-body="true" :lock-scroll="false" style="border-radius: 5px;">
+            <!-- 添加任务表单 -->
+            <el-form :hide-required-asterisk="true" :model="editorForm" :rules="rules" ref="editorFormRef"
+              label-width="80px" style="max-width: 450px; margin: 0 auto;">
+              <el-form-item label="任务名称" prop="task_title">
+                <el-input v-model="editorForm.task_title" prefix-icon="el-icon-edit"></el-input>
+              </el-form-item>
+
+              <el-form-item label="预估时间" prop="estimatedTime">
+                <el-date-picker v-model="editorForm.estimatedTime" type="datetimerange" start-placeholder="Start date"
+                  end-placeholder="End date" value-format="x" />
+              </el-form-item>
+              <el-form-item prop="priority">
+                <el-radio-group v-model="editorForm.priority" label="请选择优先级">
+                  <el-radio :label="1"></el-radio>
+                  <el-radio :label="2"></el-radio>
+                  <el-radio :label="3"></el-radio>
+                </el-radio-group>
+              </el-form-item>
+              <el-form-item label="任务内容" prop="task_description">
+                <el-input type="textarea" :rows="6" v-model="editorForm.task_description"
+                  prefix-icon="el-icon-edit"></el-input>
+              </el-form-item>
+            </el-form>
+            <template #footer>
+              <span class="dialog-footer">
+                <el-button @click="editTaskVisible = false">返回</el-button>
+                <el-button type="primary" @click="editTask()">提交</el-button>
+              </span>
+            </template>
+          </el-dialog>
+        </div>
+
         <!-- 删除任务对话框 -->
-        <el-dialog  class="delete-dialog" v-model="taskDeleteVisible" width="200px" center :modal="false" :lock-scroll="false"
-          :append-to-bod="true" style="border-radius: 5px;">
+        <el-dialog class="delete-dialog" v-model="taskDeleteVisible" width="200px" center :modal="false"
+          :lock-scroll="false" :append-to-bod="true" style="border-radius: 5px;">
           <template #default>
             <p style="text-align: center;">删除任务？</p>
           </template>
@@ -494,8 +548,8 @@ const handleDeleteTask = async () => {
         </el-dialog>
       </div>
     </div>
-    
-    <TaskDetail :selectTaskId="selectTaskId"></TaskDetail>
+    <!-- 向taskDetail组件传递被选中的任务id,接受taskDetail组件的任务详情 -->
+    <TaskDetail :selectTaskId="selectTaskId" @task-detail="taskDetail"></TaskDetail>
 
   </div>
 </template>
@@ -525,6 +579,7 @@ const handleDeleteTask = async () => {
     margin: 10px 15px;
     display: flex;
     flex-direction: column;
+    position: relative;
 
     //设置样式
     .setting {
@@ -560,6 +615,7 @@ const handleDeleteTask = async () => {
     //添加任务样式
     .add-task {
       margin: 0 15px;
+      height: 50px;
       width: 750px;
       background-color: #fff;
       border-bottom: 1px dotted #e5e5e5;
@@ -584,11 +640,59 @@ const handleDeleteTask = async () => {
       }
     }
 
-  
-
     //任务列表样式
     .task-list {
       margin: 0 15px;
+
+
+      //任务未完成样式
+      .task-item {
+        overflow: hidden;
+        height: 35px;
+        border-bottom: 1px dotted #e5e5e5;
+        border-top: 1px solid #fff;
+        padding: 2px 0;
+        width: 750px;
+        background-color: #fff;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+
+        &:active {
+          background-color: rgba(173, 216, 230, 0.178);
+        }
+
+        .el-button {
+          margin-left: 0;
+          margin-right: 15px;
+        }
+
+        .el-text {
+          flex: 1;
+          margin: 0 5px;
+        }
+
+        .task-title {
+          margin-left: 10px;
+          text-align: center;
+          flex: 2;
+        }
+
+        .task-content {
+          flex: 7;
+          margin-right: 50px;
+          margin-left: 50px;
+        }
+
+        .task-time {
+          flex: 2;
+        }
+
+        .priority-icon {
+          margin-right: 10px;
+          flex: 1;
+        }
+      }
 
       //任务已完成样式
       .completed-task {
@@ -612,57 +716,8 @@ const handleDeleteTask = async () => {
         }
       }
 
-      //任务未完成样式
-      .task-item {
-        overflow: hidden;
-        height: 35px;
-        border-bottom: 1px dotted #e5e5e5;
-        border-top: 1px solid #fff;
-        padding: 2px 0;
-        width: 750px;
-        background-color: #fff;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-
-        &:active {
-          background-color: rgba(173, 216, 230, 0.178);
-        }
-
-        .el-button {
-          margin-left: 0;
-          margin-right: 30px;
-        }
-
-        .el-text {
-          flex: 1;
-          margin: 0 5px;
-        }
-
-        .task-title {
-          margin-left: 10px;
-          text-align: center;
-          flex: 1;
-
-        }
-
-        .task-content {
-          flex: 7;
-          margin-right: 50px;
-          margin-left: 50px;
-        }
-
-        .task-time {
-          flex: 2;
-        }
-        .priority-icon{
-          margin-right: 10px;
-          flex: 1;
-        }
-      }
-
       //任务超时样式
-      .over-time {    
+      .over-time {
         background-color: #ea520031;
       }
 
@@ -674,13 +729,14 @@ const handleDeleteTask = async () => {
 
     }
 
-    .alter-task-staus {
-    
-     
-
-    }
+    .alter-task-staus {}
   }
 
-
+  .el-pagination {
+    bottom: 10px;
+    position: absolute;
+    left: 50%;
+    transform: translate(-50%, 0);
+  }
 }
 </style>

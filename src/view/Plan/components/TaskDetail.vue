@@ -10,10 +10,12 @@ const props = defineProps({
     required: true
   }
 })
+const emit = defineEmits(['taskDetail'])
 console.log(taskInfo)
 const taskDetail = ref(null)
 watch([()=> taskInfo,() => props.selectTaskId], () => {
   taskDetail.value = taskInfo.value.find(task => task.task_id === props.selectTaskId)
+  emit('taskDetail', taskDetail.value)
  console.log('taskDetail被渲染',taskDetail)
 })
 console.log(taskDetail)

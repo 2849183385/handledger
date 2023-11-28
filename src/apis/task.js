@@ -45,3 +45,13 @@ export const deleteTaskAPI = (user_id, task_id) => {
         }
     })
 }
+
+
+//修改任务信息
+export const updateTaskAPI = (data) => {
+    return request({
+        method: 'post',
+        url: `/task/updateTask`,
+        data
+    })
+}
