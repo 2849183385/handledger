@@ -5,19 +5,7 @@ import { storeToRefs } from 'pinia';
 import { useUserStore } from '@/stores/userStore'
 const userStore = useUserStore()
 const { userInfo } = storeToRefs(userStore)
-console.log(userInfo)
-//用户信息表单
-// const userInfo = reactive({
-//   uid: '123456',
-//   username: '范小勤',
-//   gender: '男',
-//   brithday: '12-15',
-//   email: '',
-//   phone: '166666666',
-//   text: 'vocal',
-//   address: '江西吉安',
-// })
-
+// console.log(userInfo)
 </script>
 
 <template>

@@ -3,12 +3,12 @@ import Login from '@/view/Login/index.vue'
 import Layout from '@/view/Layout/index.vue'
 import Home from '@/view/Home/index.vue'
 import Help from '@/view/Help/index.vue'
-import Plan from '@/view/Plan/index.vue'
+// import Plan from '@/view/Plan/index.vue'
 import User from '@/view/User/index.vue'
-import UserIndex from '@/view/User/views/UserIndex.vue'
-import UserCollection from '@/view/User/views/UserCollection.vue'
-import UserOpus from '@/view/User/views/UserOpus.vue'
-import UserSetting from '@/view/User/views/UserSetting.vue'
+// import UserIndex from '@/view/User/views/UserIndex.vue'
+// import UserCollection from '@/view/User/views/UserCollection.vue'
+// import UserOpus from '@/view/User/views/UserOpus.vue'
+// import UserSetting from '@/view/User/views/UserSetting.vue'
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
@@ -26,27 +26,27 @@ const router = createRouter({
           path: `user`,
           name: 'user',
           component: User,
-          
+
           children: [
             {
               path: '',
               name: 'userIndex',
-              component: UserIndex
+              component: () => import('@/view/User/views/UserIndex.vue')
             },
             {
               path: 'collection',
               name: 'userCollection',
-              component: UserCollection
+              component: () => import('@/view/User/views/UserCollection.vue')
             },
             {
               path: 'opus',
               name: 'userOpus',
-              component: UserOpus
+              component: () => import('@/view/User/views/UserOpus.vue')
             },
             {
               path: 'setting',
               name: 'userSetting',
-              component:  UserSetting
+              component: () => import('@/view/User/views/UserSetting.vue')
             }
           ]
         },
@@ -61,8 +61,13 @@ const router = createRouter({
         {
           path: 'plan',
           name: 'plan',
-          component: Plan,
+          component: () => import('@/view/Plan/index.vue')
+        },
+        {
+          path: 'detail',
+          component: () => import('@/view/Detail/index.vue')
         }
+
       ]
     },
 

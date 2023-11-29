@@ -35,18 +35,7 @@ onMounted(() => {
 watch(() => userStore.userInfo, (newVal) => {
     form.value = newVal
 })
-// computed({
-//     convertedRegion() {
-//         if (Array.isArray(this.form.value.user_region)) {
-//             return this.form.value.user_region.join(',');
-//         } else {
-//             return '';
-//         }
-//     }
-// }) 
 const dialogFormVisible = ref(false)
-// const formLabelWidth = '140px'
-
 const form = ref(
     {
         account,
@@ -59,8 +48,7 @@ const form = ref(
         user_motto
     }
 )
-
-console.log(form.value)
+// console.log(form.value)
 const rules = ({
     nick_name: [
         { required: true, message: '请输入昵称', trigger: 'blur' },
@@ -87,10 +75,6 @@ const rules = ({
         { required: true, message: '请输入个性签名', trigger: 'blur' }
     ]
 })
-// const handleAreaChange = (value) => {
-//     console.log(value)
-// }
-
 // 提交前统一校验
 const formRef = ref(null)
 const onSubmit = async () => {
@@ -119,9 +103,7 @@ const onSubmit = async () => {
         }
     });
 }
-
 </script>
-
 <template>
     <div class="update-info">
         <el-button text @click="dialogFormVisible = true">

@@ -39,3 +39,14 @@ export const updateUserInfoAPI = (data) => {
         data
     })
 }
+
+export const updateAvatarAPI = (user_id,avatar) => {
+    return request({
+        url: '/user/updateAvatar',
+        method: 'post',
+        data: {
+            user_id,
+            user_pic: avatar
+        }
+    })
+}

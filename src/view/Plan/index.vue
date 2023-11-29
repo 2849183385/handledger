@@ -453,8 +453,8 @@ const handleEditTask = async () => {
               </el-form-item>
 
               <el-form-item label="预估时间" prop="estimatedTime">
-                <el-date-picker v-model="taskForm.estimatedTime" type="datetimerange" start-placeholder="Start date"
-                  end-placeholder="End date" value-format="x" />
+                <el-date-picker v-model="taskForm.estimatedTime" type="datetimerange" start-placeholder="开始时间"
+                  end-placeholder="结束时间" value-format="x" />
               </el-form-item>
               <el-form-item prop="priority">
                 <el-radio-group v-model="taskForm.priority" label="请选择优先级">
