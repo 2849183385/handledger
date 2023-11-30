@@ -1,8 +1,9 @@
 <script setup>
+import { ref } from 'vue'
 import { useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus'
 import { useUserStore } from '@/stores/userStore';
-
+import { avatarSrc } from '@/utils/imageSrc';
 const Router = useRouter()
 const userStore=useUserStore()
 const confirmEvent = () => {
@@ -13,7 +14,9 @@ const confirmEvent = () => {
         message: '退出成功'
     })
 }
-
+const imgUrl = ref(null)
+imgUrl.value = avatarSrc(userStore.userInfo.user_pic)
+console.log(imgUrl)
 </script>
 
 <template>
@@ -22,7 +25,7 @@ const confirmEvent = () => {
             <span class="el-dropdown-link">
                 <!-- 初始头像 -->
                 <el-avatar :icon="UserFilled" v-if="0"/>
-                <el-avatar :size="55" src="src/assets/images/avatar1.jpg" v-else>
+                <el-avatar :size="55" :src="imgUrl" v-else>
                     <!--头像加载失败 -->
                     <el-icon style="font-size:40px;"><UserFilled/></el-icon>
                     <!-- <img src="https://cube.elemecdn.com/e/fd/0fc7d20532fdaf769a25683617711png.png"/> -->

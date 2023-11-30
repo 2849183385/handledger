@@ -46,7 +46,8 @@ const handleFileChange = (file) => {
 
 
 // 创建URL并将Blob转换为URL
-imgUrl.value = avatarSrc(userInfo.value.user_pic)
+imgUrl.value =  avatarSrc(userInfo.value.user_pic)
+console.log(imgUrl.value)
 // 现在imageUrl包含了原始图片的URL，您可以将其赋值给img标签的src属性来显示图片
 </script>
 
@@ -68,7 +69,7 @@ imgUrl.value = avatarSrc(userInfo.value.user_pic)
                 </div>
               </div>
               <!--头像加载失败 -->
-              <el-icon style="font-size:40px;">
+              <el-icon style="font-size:60px;">
                 <UserFilled />
               </el-icon>
               <!-- <img src="https://cube.elemecdn.com/e/fd/0fc7d20532fdaf769a25683617711png.png"/> -->
