@@ -1,5 +1,12 @@
 <script setup>
-
+import { ref } from 'vue'
+import { useUserStore } from '@/stores/userStore'
+import { storeToRefs } from 'pinia';
+import { avatarSrc } from '@/utils/imageSrc'
+const imgUrl = ref(null)
+const userStore = useUserStore()
+const { userInfo } = storeToRefs(userStore)
+imgUrl.value = avatarSrc(userInfo.value.user_pic)
 </script>
 
 <template>
@@ -7,34 +14,62 @@
         <div class="card">
             <div class="show-wrapper">
                 <div class="pic-wrapper">
-                    <image src="src/assets/images/bg.png" style="height:300px;"></image>
+                    <img src="src/assets/images/bg.png" style="height:300px;">
                 </div>
-                <h2 class="title">Mario</h2>
                 <div class="show-info">
+                    <h4 class="title">
+                        chan
+                    </h4>
                     <div class="show-info-item">
+                        <div class="watch">
+                            <i class="iconfont icon-view"></i>
+                            <span>14k</span>
+                        </div>
+                        <div class="like">
+                            <i class="iconfont icon-like"></i><span>13k</span>
+                        </div>
+                        <div class="remark">
+                            <i class="iconfont icon-comment_light"></i>
+                            <span>13k</span>
+                        </div>
 
                     </div>
-                    <div class="show-info-item">
-
+                    <div class="creator-info">
+                        <div class="creator-name ">
+                            <el-avatar :size="35" :src="avatarSrc(userStore.userInfo.user_pic)"></el-avatar>
+                           <span style="margin-left: 10px; font-size: 16px;">chan</span> 
+                        </div>
+                        <span class="creator-time">
+                            6小时前
+                        </span>
                     </div>
                 </div>
+
             </div>
             <div class="hover-wrapper">
                 <div class="hover-info">
                     <div class="info-item">
                         <span>13k</span>
-                        <span class="info-item-title">Loveing</span>
+                        <span class="info-item-title">
+                            <i class="iconfont icon-like"></i>
+                        </span>
                     </div>
                     <div class="line"></div>
                     <div class="info-item">
                         <span>14k</span>
-                        <span class="info-item-title">Watching</span>
+                        <span class="info-item-title">
+                            <el-icon>
+                                <View />
+                            </el-icon>
+                        </span>
                     </div>
                 </div>
                 <button class="btn">See More</button>
             </div>
+
             <div class="background"></div>
         </div>
+
     </div>
 </template>
 
@@ -52,28 +87,64 @@
 
             .pic-wrapper {
                 overflow: hidden;
-                border-radius: 20px;
+                border-radius: 20px 20px 0 0;
                 width: 270px;
                 height: 300px;
                 transition: 0.4s;
-                
+
             }
 
-            .title {
-                margin: 10px 0;
-            }
 
             .show-info {
+
                 display: flex;
-                flex-direction: row;
+                flex-direction: column;
+
                 color: #cccccc;
-                justify-content: space-between;
+                border-radius: 0 0 20px 20px;
+                background-color: #fff;
 
                 .show-info-item {
-                    
+                    font-size: 16px;
+                    display: flex;
+                    line-height: 35px;
+                    justify-content: space-around;
+
+                    .watch {
+                        margin-right: 10px;
+                    }
+
+                    .like {
+                        margin-right: 10px;
+                    }
+
+                    .remark {
+                        margin-right: 10px;
+                    }
+                }
+
+                .title {
+                    margin: 5px 0;
+                    font-size: 16px;
+                }
+
+                .creator-info {
+                    border-top: #cccccc 1px dotted;
+                    padding: 5px 15px;
+                    border-radius: 0 0 20px 20px;
+                    height: 50px;
+                    line-height: 39px;
+                    display: flex;
+                    justify-content: space-between;
+                    .creator-name {
+                       display: flex;
+                    }
                 }
             }
+
+
         }
+
         .hover-wrapper {
             display: none;
             position: relative;
@@ -121,6 +192,7 @@
                 color: #fff;
             }
         }
+
         .background {
             background-color: #fff;
             position: absolute;
@@ -197,5 +269,4 @@
     100% {
         opacity: 1;
     }
-}
-</style>
+}</style>

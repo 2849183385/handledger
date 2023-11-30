@@ -1,11 +1,13 @@
 <script setup>
-import { ref } from 'vue'
+import { ref , watch } from 'vue'
 import { useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus'
 import { useUserStore } from '@/stores/userStore';
 import { avatarSrc } from '@/utils/imageSrc';
+import { storeToRefs } from 'pinia';
 const Router = useRouter()
-const userStore=useUserStore()
+const userStore = useUserStore()
+const {userInfo} =storeToRefs(userStore)
 const confirmEvent = () => {
     userStore.removeToken()
     Router.push('/login')
@@ -14,9 +16,11 @@ const confirmEvent = () => {
         message: '退出成功'
     })
 }
-const imgUrl = ref(null)
-imgUrl.value = avatarSrc(userStore.userInfo.user_pic)
-console.log(imgUrl)
+//监听图片更新后重新赋值
+watch(userInfo, () => {
+    imgUrl.value = avatarSrc(userInfo.value.user_pic)
+})
+const imgUrl = ref(avatarSrc(userInfo.value.user_pic))
 </script>
 
 <template>

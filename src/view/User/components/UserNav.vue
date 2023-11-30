@@ -34,19 +34,21 @@ const handleFileChange = (file) => {
       reader.readAsDataURL(result);
       reader.onload = (e) => {
         imgUrl.value = reader.result
-        updateAvatarAPI(userInfo.value.user_id, e.target.result)
+        updateAvatarAPI(userInfo.value.user_id, e.target.result).then(() => {
+          userStore.getUserInfo(userInfo.value.account)
+
+        })
       }
     },
     error(e) {
       console.error(e.message);
     },
-  });
+  })
   ElMessage.success('头像上传成功')
 }
 
-
 // 创建URL并将Blob转换为URL
-imgUrl.value =  avatarSrc(userInfo.value.user_pic)
+imgUrl.value = avatarSrc(userInfo.value.user_pic)
 console.log(imgUrl.value)
 // 现在imageUrl包含了原始图片的URL，您可以将其赋值给img标签的src属性来显示图片
 </script>
@@ -56,8 +58,7 @@ console.log(imgUrl.value)
     <div class="container">
       <div class="user">
         <div class="user-avatar">
-          <el-upload class="avatar-uploader" :show-file-list="false" :auto-upload="false" accept="image/*"
-            :on-change="handleFileChange">
+          <el-upload class="avatar-uploader" :show-file-list="false" :auto-upload="false" :on-change="handleFileChange">
             <el-avatar :size="150" style="border-radius: 50%;" :src="imgUrl">
               <!--头像加载中 -->
               <div class="loading" v-show="loading">

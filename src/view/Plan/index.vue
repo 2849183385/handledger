@@ -1,5 +1,5 @@
 <script setup >
-import { ref, computed, toRefs } from 'vue'
+import { ref, computed, toRefs, onMounted } from 'vue'
 import { formatTimestamp, convertToTimestamp } from '@/utils/format'
 import { useUserStore } from '@/stores/userStore'
 import { useTaskStore } from '@/stores/taskStore';
@@ -12,7 +12,18 @@ const { userInfo: { user_id } } = useUserStore()
 // console.log(user_id)
 const taskStore = useTaskStore()
 // console.log(user_id)
-taskStore.getTasksById(user_id)
+const taskSInfoExist = () => {
+  if (taskInfo.value.length > 0) {
+    return
+  } else {
+    taskStore.getTasksById(user_id)
+
+  }
+}
+onMounted(() => {
+  taskSInfoExist()
+})
+
 const { taskInfo } = toRefs(taskStore)
 
 //-------------------------------------------------------------------------------------------------------------------------------
@@ -414,7 +425,7 @@ const handleEditTask = async () => {
           'task-item-selected': index === selectedTaskIndex,
           'over-time': (item.status !== 'Completed') && (item.end_date < convertToTimestamp(new Date()))
         }" :key="index" @click="selectTask(index, item.task_id)">
-          <el-text class="task-title" :truncated="true" >{{ item.task_title }}</el-text>
+          <el-text class="task-title" :truncated="true">{{ item.task_title }}</el-text>
           <el-text class="task-content" :truncated="true">{{ item.task_description }}</el-text>
           <el-text class="task-time">{{ formatTimestamp(item.end_date) }}</el-text>
           <el-button type="primary" size="small" circle @click="openCompleteVisible(item.task_id)"

@@ -6,6 +6,41 @@
   "description": "",
   "glyphs": [
     {
+      "icon_id": "1496053",
+      "name": "comment_light",
+      "font_class": "comment_light",
+      "unicode": "e7e0",
+      "unicode_decimal": 59360
+    },
+    {
+      "icon_id": "21823958",
+      "name": "view",
+      "font_class": "view",
+      "unicode": "e682",
+      "unicode_decimal": 59010
+    },
+    {
+      "icon_id": "1293138",
+      "name": "like",
+      "font_class": "like",
+      "unicode": "e60b",
+      "unicode_decimal": 58891
+    },
+    {
+      "icon_id": "14456300",
+      "name": "like",
+      "font_class": "like1",
+      "unicode": "e65f",
+      "unicode_decimal": 58975
+    },
+    {
+      "icon_id": "13519354",
+      "name": "collection-tag",
+      "font_class": "collection-tag",
+      "unicode": "e646",
+      "unicode_decimal": 58950
+    },
+    {
       "icon_id": "1166082",
       "name": "火箭2",
       "font_class": "huojian2",
