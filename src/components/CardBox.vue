@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import { useUserStore } from '@/stores/userStore'
 import { storeToRefs } from 'pinia';
 import { avatarSrc } from '@/utils/imageSrc'
+import router from '@/router';
 const imgUrl = ref(null)
 const userStore = useUserStore()
 const { userInfo } = storeToRefs(userStore)
@@ -37,7 +38,7 @@ imgUrl.value = avatarSrc(userInfo.value.user_pic)
                     <div class="creator-info">
                         <div class="creator-name ">
                             <el-avatar :size="35" :src="avatarSrc(userStore.userInfo.user_pic)"></el-avatar>
-                           <span style="margin-left: 10px; font-size: 16px;">chan</span> 
+                            <span style="margin-left: 10px; font-size: 16px;">chan</span>
                         </div>
                         <span class="creator-time">
                             6小时前
@@ -47,24 +48,13 @@ imgUrl.value = avatarSrc(userInfo.value.user_pic)
 
             </div>
             <div class="hover-wrapper">
-                <div class="hover-info">
-                    <div class="info-item">
-                        <span>13k</span>
-                        <span class="info-item-title">
-                            <i class="iconfont icon-like"></i>
-                        </span>
-                    </div>
-                    <div class="line"></div>
-                    <div class="info-item">
-                        <span>14k</span>
-                        <span class="info-item-title">
-                            <el-icon>
-                                <View />
-                            </el-icon>
-                        </span>
-                    </div>
+                <div class="desc">
+                    <el-text :truncated="true" :max-rows="3" >lorem ipsum dolor sit amet, consectetur
+                        adipisicing elit. Aperiam, asperiores atque delectus dolorum eaque enim error expedita fugit hic
+                        impedit incidunt ipsam iure, iusto maxime natus nemo quae quasi quidem quo rem repellat sapiente
+                        similique sunt tempora ullam ut voluptatem.</el-text>
                 </div>
-                <button class="btn">See More</button>
+                <el-button @click="router.push('/detail')" class="btn">前往</el-button>
             </div>
 
             <div class="background"></div>
@@ -136,8 +126,9 @@ imgUrl.value = avatarSrc(userInfo.value.user_pic)
                     line-height: 39px;
                     display: flex;
                     justify-content: space-between;
+
                     .creator-name {
-                       display: flex;
+                        display: flex;
                     }
                 }
             }
@@ -153,41 +144,14 @@ imgUrl.value = avatarSrc(userInfo.value.user_pic)
             opacity: 1;
             transition: 0.5s;
 
-            .hover-info {
-                display: flex;
-                flex-direction: row;
-                justify-content: center;
-                height: 100%;
-                font-size: 2vw;
-
-                .info-item {
-                    display: flex;
-                    flex-direction: column;
-                    justify-content: center;
-                    align-items: center;
-
-                    .info-item-title {
-                        font-size: 0.8vw;
-                        color: #cccccc;
-                    }
-                }
-
-                .line {
-                    width: 2px;
-                    height: 4vh;
-                    margin: 0 1vw;
-                    background: #cccccc;
-                }
-            }
-
             .btn {
                 width: 90%;
                 height: 40px;
-                margin-top: 2vh;
+                margin: 2vh 0;
                 border-radius: 50px;
                 background-color: rgb(67, 119, 216);
                 border: 0;
-                font-size: 1vw;
+                font-size: 2vw;
                 cursor: pointer;
                 color: #fff;
             }
@@ -238,6 +202,12 @@ imgUrl.value = avatarSrc(userInfo.value.user_pic)
                 animation: hoverWrapperAmt 0.5s ease-in-out forwards;
                 display: flex;
                 transform: translateY(-100%);
+
+                .desc {
+                    width: 200px;
+                    margin: 5px 25px;
+                    height: 40px;
+                }
             }
 
             .background {

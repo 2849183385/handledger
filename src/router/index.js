@@ -5,6 +5,7 @@ import Home from '@/view/Home/index.vue'
 import Help from '@/view/Help/index.vue'
 // import Plan from '@/view/Plan/index.vue'
 import User from '@/view/User/index.vue'
+// import Loader from '@/view/Loader/index.vue'
 // import UserIndex from '@/view/User/views/UserIndex.vue'
 // import UserCollection from '@/view/User/views/UserCollection.vue'
 // import UserOpus from '@/view/User/views/UserOpus.vue'
@@ -63,18 +64,19 @@ const router = createRouter({
           name: 'plan',
           component: () => import('@/view/Plan/index.vue')
         },
-        {
-          path: 'detail',
-          component: () => import('@/view/Detail/index.vue')
-        }
+
 
       ]
     },
-
     {
       path: '/login',
-      component: Login
+      component: Login,
+
     },
+    {
+      path: '/detail',
+      component: () => import('@/view/Detail/index.vue')
+    }
   ],
   // 路由行为定制（路由切换后。页面自动跳到顶部）
   scrollBehavior() {

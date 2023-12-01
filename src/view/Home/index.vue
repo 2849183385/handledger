@@ -1,5 +1,5 @@
 <script setup>
-import BannerCarousel from '@/components/BannerCarousel.vue';
+import BannerCarousel from './components/BannerCarousel.vue';
 import CardBox from '@/components/CardBox.vue';
 
 const arr = [1, 2, 3, 4, 5, 6, 7, 8, 9, 1, 1, 1, 1, 1, 1]

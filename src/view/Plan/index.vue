@@ -8,16 +8,18 @@ import { ElMessage } from 'element-plus';
 import TaskDetail from './components/TaskDetail.vue';
 import LeftView from './components/LeftView.vue'
 import { Operation, Check, Delete } from '@element-plus/icons-vue';
+const loader = ref(true)
 const { userInfo: { user_id } } = useUserStore()
 // console.log(user_id)
 const taskStore = useTaskStore()
 // console.log(user_id)
 const taskSInfoExist = () => {
-  if (taskInfo.value.length > 0) {
+  if (taskInfo.value.length > 0 && taskInfo.value[0].creator_id == user_id) {
     return
   } else {
-    taskStore.getTasksById(user_id)
-
+    taskStore.getTasksById(user_id).then(() => {
+      loader.value=false
+    })
   }
 }
 onMounted(() => {
@@ -269,15 +271,17 @@ function addTask() {
     start_date: taskForm.value.estimatedTime[0],
     end_date: taskForm.value.estimatedTime[1],
     creator_id: user_id,
+  }).then(()=> {
+    taskStore.getTasksById(user_id)
+    taskForm.value = {
+      task_title: '',
+      task_description: '',
+      estimatedTime: '',
+      priority: ''
+    }
+    ElMessage.success('添加成功');
   })
-  taskStore.getTasksById(user_id)
-  taskForm.value = {
-    task_title: '',
-    task_description: '',
-    estimatedTime: '',
-    priority: ''
-  }
-  ElMessage.success('添加成功');
+  
 }
 const editorFormRef = ref(null)
 const taskDetail = (obj) => {
@@ -357,16 +361,20 @@ const handleEditTask = async () => {
     end_date: editorForm.value.estimatedTime[1],
     task_id: editorForm.value.task_id,
     creator_id: user_id,
-  })
-  taskStore.getTasksById(user_id)
+  }).then(() => {
+    taskStore.getTasksById(user_id)
   editTaskVisible.value = false
   ElMessage.success('修改成功');
-  console.log('editTask被调用', selectTaskId.value);
+  }).catch((error) => {
+    console.error('Error:', error); // 如果异步函数执行失败，输出错误信息
+  });
+  
 }
 </script> 
 
 <template>
-  <div class="container">
+  <div class="loader" v-if="loader.value"></div>
+  <div class="container" v-else>
 
     <LeftView></LeftView>
 
@@ -403,7 +411,7 @@ const handleEditTask = async () => {
       <div class="add-task">
         <el-input v-show="!isCompleteTask" type="text" class="w-50 m-2" placeholder="添加你的任务吧" width="200px"
           @click="addDialogVisible = true" @keyup.enter="addTask" ref="inputRef" :value="taskForm.task_title" />
-        <el-button v-show="!isCompleteTask" @click="addTask">添加</el-button>
+        <el-button v-show="!isCompleteTask" @click="addTask" :disabled="taskForm.task_title.trim() === ''">添加</el-button>
       </div>
 
 
