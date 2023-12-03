@@ -44,6 +44,9 @@ input{
     overflow: hidden;
     
 }
+*::-webkit-scrollbar{
+    width: 10px;
+}
 .right{
     float: right;
 }

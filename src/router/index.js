@@ -5,6 +5,7 @@ import Home from '@/view/Home/index.vue'
 import Help from '@/view/Help/index.vue'
 // import Plan from '@/view/Plan/index.vue'
 import User from '@/view/User/index.vue'
+import Publish from '@/view/publish/index.vue'
 // import Loader from '@/view/Loader/index.vue'
 // import UserIndex from '@/view/User/views/UserIndex.vue'
 // import UserCollection from '@/view/User/views/UserCollection.vue'
@@ -27,7 +28,6 @@ const router = createRouter({
           path: `user`,
           name: 'user',
           component: User,
-
           children: [
             {
               path: '',
@@ -52,20 +52,22 @@ const router = createRouter({
           ]
         },
         {
-          path: 'help',
-          name: 'help',
-          component: Help,
-          children: [
-
-          ]
+          path: 'publish',
+          component:Publish
         },
+
         {
           path: 'plan',
           name: 'plan',
           component: () => import('@/view/Plan/index.vue')
         },
-
-
+        {
+          path: 'help',
+          name: 'help',
+          component: Help,
+          children: [
+          ]
+        },
       ]
     },
     {

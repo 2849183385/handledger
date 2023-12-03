@@ -1,22 +1,44 @@
+import ImageCompressor from 'image-compressor.js'
 
 
 //导出头像 将base64转为blob再转为URL
 export const avatarSrc = (user_pic) => {
     //如果传入的数据类型不是base64型则返回false
     try {
-    //筛选出userInfo 中 user_id=user_id 的数据
-    const base64Data = user_pic
-    const byteCharacters = atob(base64Data.split(',')[1]);
-    const byteNumbers = new Array(byteCharacters.length);
-    for (let i = 0; i < byteCharacters.length; i++) {
-        byteNumbers[i] = byteCharacters.charCodeAt(i);
-    }
-    const byteArray = new Uint8Array(byteNumbers);
-    const blob = new Blob([byteArray], { type: 'image/jpeg' });
-    // 创建URL并将Blob转换为URL
-    return URL.createObjectURL(blob);
-    // 现在imageUrl包含了原始图片的URL，您可以将其赋值给img标签的src属性来显示图片
+        //筛选出userInfo 中 user_id=user_id 的数据
+        const base64Data = user_pic
+        const byteCharacters = atob(base64Data.split(',')[1]);
+        const byteNumbers = new Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++) {
+            byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+        const byteArray = new Uint8Array(byteNumbers);
+        const blob = new Blob([byteArray], { type: 'image/jpeg' });
+        // 创建URL并将Blob转换为URL
+        return URL.createObjectURL(blob);
+        // 现在imageUrl包含了原始图片的URL，您可以将其赋值给img标签的src属性来显示图片
     } catch (error) {
         return false; // 解码失败，返回false
     }
-    }
+}
+
+/**
+ * 压缩图片，并转为data url
+ * @param {Object} img 图片对象
+ * return {String} data url
+ */
+export const imgZip = async (img) => {
+  const dataUrl = await new ImageCompressor(img.raw, {
+        quality: 0.2, // 压缩质量，0-1之间
+        maxWidth: 200, // 图片最大宽度
+        maxHeight: 200, // 图片最大高度
+       success(result) { 
+            const reader = new FileReader()
+            reader.readAsDataURL(result);
+            reader.onload =async () => {
+               return  reader.result
+            }
+        }
+  })
+    return dataUrl
+}
