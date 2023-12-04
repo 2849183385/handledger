@@ -3,7 +3,7 @@ import { ref , watch } from 'vue'
 import { useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus'
 import { useUserStore } from '@/stores/userStore';
-import { avatarSrc } from '@/utils/imageSrc';
+import { imageSrc } from '@/utils/imageSrc';
 import { storeToRefs } from 'pinia';
 const Router = useRouter()
 const userStore = useUserStore()
@@ -18,9 +18,9 @@ const confirmEvent = () => {
 }
 //监听图片更新后重新赋值
 watch(userInfo, () => {
-    imgUrl.value = avatarSrc(userInfo.value.user_pic)
+    imgUrl.value = imageSrc(userInfo.value.user_pic)
 })
-const imgUrl = ref(avatarSrc(userInfo.value.user_pic))
+const imgUrl = ref(imageSrc(userInfo.value.user_pic))
 </script>
 
 <template>

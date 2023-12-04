@@ -5,7 +5,7 @@ import { storeToRefs } from 'pinia';
 // import { ElMessage } from 'element-plus'
 import { updateAvatarAPI } from '@/apis/user'
 import ImageCompressor from 'image-compressor.js'
-import { avatarSrc } from '@/utils/imageSrc'
+import { imageSrc } from '@/utils/imageSrc'
 import { ElMessage } from 'element-plus';
 const imgUrl = ref(null)
 const userStore = useUserStore()
@@ -27,8 +27,8 @@ const handleFileChange = (file) => {
   //压缩图片质量
   new ImageCompressor(file.raw, {
     quality: 0.6, // 压缩质量，0-1之间
-    maxWidth: 800, // 图片最大宽度
-    maxHeight: 800, // 图片最大高度
+    maxWidth: 400, // 图片最大宽度
+    maxHeight: 400, // 图片最大高度
     success(result) {
       const reader = new FileReader()
       reader.readAsDataURL(result);
@@ -36,7 +36,7 @@ const handleFileChange = (file) => {
         imgUrl.value = reader.result
         updateAvatarAPI(userInfo.value.user_id, e.target.result).then(() => {
           userStore.getUserInfo(userInfo.value.account)
-
+        ElMessage.success('头像上传成功')
         })
       }
     },
@@ -44,11 +44,11 @@ const handleFileChange = (file) => {
       console.error(e.message);
     },
   })
-  ElMessage.success('头像上传成功')
+  
 }
 
 // 创建URL并将Blob转换为URL
-imgUrl.value = avatarSrc(userInfo.value.user_pic)
+imgUrl.value = imageSrc(userInfo.value.user_pic)
 console.log(imgUrl.value)
 // 现在imageUrl包含了原始图片的URL，您可以将其赋值给img标签的src属性来显示图片
 </script>

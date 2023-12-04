@@ -2,12 +2,12 @@
 import { ref } from 'vue'
 import { useUserStore } from '@/stores/userStore'
 import { storeToRefs } from 'pinia';
-import { avatarSrc } from '@/utils/imageSrc'
+import { imageSrc } from '@/utils/imageSrc'
 import router from '@/router';
 const imgUrl = ref(null)
 const userStore = useUserStore()
 const { userInfo } = storeToRefs(userStore)
-imgUrl.value = avatarSrc(userInfo.value.user_pic)
+imgUrl.value = imageSrc(userInfo.value.user_pic)
 </script>
 
 <template>
@@ -37,7 +37,7 @@ imgUrl.value = avatarSrc(userInfo.value.user_pic)
                     </div>
                     <div class="creator-info">
                         <div class="creator-name ">
-                            <el-avatar :size="35" :src="avatarSrc(userStore.userInfo.user_pic)"></el-avatar>
+                            <el-avatar :size="35" :src="imageSrc(userStore.userInfo.user_pic)"></el-avatar>
                             <span style="margin-left: 10px; font-size: 16px;">chan</span>
                         </div>
                         <span class="creator-time">
