@@ -16,15 +16,19 @@ export const useLedgerStore = defineStore("ledger", () => {
            console.log(res)
            setLedger(res.data.data)
            console.log(res1)
+           //注意map不要添加async，会导致返回结果为promise
            ledger.value.commentsInfo = res1.data.data.map( (item) => {
                 const id =item.comment_id
                console.log(item)
                getReplyAPI({ id }).then(async (res) => {
                 if (res.data.data.length > 0) {
-                    
-                    // item =item.map imageSrc(item.user_pic)
+                    //将获取的回复数据的头像格式转换
+                    res.data.data = res.data.data.map((item) => {
+                        item.user_pic = imageSrc(item.user_pic)
+                        return item
+                    }) 
+                    //将对应的回复数据插入到对应的评论中
                     item.replies = res.data.data
-                    console.log(item)
               }
                })
                item.user_pic = imageSrc(item.user_pic)

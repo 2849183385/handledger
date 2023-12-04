@@ -5,7 +5,7 @@ import { useLedgerStore } from '@/stores/ledger'
 import { useUserStore } from '@/stores/userStore'
 // import { formatDates } from '@/utils/format'
 import { imageSrc } from '@/utils/imageSrc'
-import { pulishCommentAPI, getReplyAPI } from '@/apis/ledger'
+import { pulishCommentAPI,} from '@/apis/ledger'
 // import { storeToRefs } from 'pinia';
 const ledgerStore = useLedgerStore()
 const userStore = useUserStore()
@@ -28,46 +28,8 @@ ledgerStore.getLedger({ id })
 postImgUrl.value = ledgerStore.ledger.ledgerInfo[0].post_image_url.split('&').map(item => {
     return imageSrc(item)
 })
-// console.log(imgArray.value);
-//转换文章图片数据格式为图片地址
 
- // console.log(postImgUrl.value);
  postAvatarUrl.value = imageSrc(ledgerStore.ledger.userInfo[0].user_pic)
- /*将请求到的评论数据里面的user_pic转换成图片格式
- /下面map函数会将数组里面的每一个元素都转换成一个promise对象
- 使用一个对象存起来，再使用promise.all将所有的promise对象都执行完毕*/
-// console.log(ledgerStore.ledger.commentsInfo)
-//  const res = await getReplyAPI({ id })
-// const id = item.comment_id
- getReplyAPI({ id }).then(res => {
-    console.log(res)
-})
-
-// ledgerStore.ledger.commentsInfo.value=ledgerStore.ledger.commentsInfo.map(async(item) => {
-//     // const id = item.comment_id
-        
-//         item.user_pic = imageSrc(item.user_pic)
-//     // commentsArray.value.push(item)
-//     // item.replyInfo= res.data.data
-//     console.log(item)
-//         // return item
-//     })
-
-        //如果有回复数据，则将数据中的头像转换为图片地址
-        // if (res.data.data.length > 0) {
-        //     // console.log(res.data.data)
-        //     item.replyInfo = res.data.data.map(item => {
-        //         item.user_pic = imageSrc(item.user_pic)
-        //         console.log(item)
-
-        //         return item
-        //     })
-        // } else {
-        //     return
-        // }
-
-
-
 
 const isCommentting = ref(false)
 const inputRef = ref(null)
