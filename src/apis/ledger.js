@@ -51,7 +51,7 @@ export function getCommentAPI({id}) {
       url: '/ledger/getComments',
       method: 'get',
       params: {
-       id
+       id,
       }
   })
 }
@@ -63,6 +63,31 @@ export function getReplyAPI({id}) {
       method: 'get',
       params: {
        id
+      }
+  })
+}
+
+//发表回复
+export function pulishReplyAPI({ user_id, content, comment_id, reply_user_id}) {
+    return request({
+      url: '/ledger/publishReply',
+      method: 'post',
+      data: {
+        user_id,
+        content,
+        comment_id,
+        reply_user_id
+      }
+  })
+}
+
+//点赞
+export function pulishLikeAPI(obj) {
+    return request({
+      url: '/ledger/publishLike',
+      method: 'post',
+      data: {
+       obj
       }
   })
 }
