@@ -6,12 +6,6 @@ import { useUserStore } from '@/stores/userStore'
 // import { formatDates } from '@/utils/format'
 import { imageSrc } from '@/utils/imageSrc'
 import { pulishCommentAPI, pulishReplyAPI, pulishLikeAPI, } from '@/apis/ledger'
-// import { storeToRefs } from 'pinia'
-//导入富文本编辑器
-// import VueQuillEditor from 'vue-quill-editor';
-// import 'quill/dist/quill.core.css';
-// import 'quill/dist/quill.snow.css';
-// import 'quill/dist/quill.bubble.css';
 const ledgerStore = useLedgerStore()
 const { userInfo: { user_id } } = useUserStore()
 const id = 19
@@ -24,26 +18,29 @@ const postAvatarUrl = ref(null)
 const commentsArray = ref([])
 
 onMounted(() => {
-    // console.log(1);
-    //     console.log(commentsArray.value)
+    
 })
 //发送获取文章信息请求
-ledgerStore.getLedger({ id }).then(() => {
+ledgerStore.getLedger({ id }).then( async () => {
     /*commentsArray赋值要在ledgerStore.getLedger之后，
      因为ledgerStore.getLedger进行了异步操作，在外面赋值会导致commentsArray的值不是最准确的值*/
+    
+    // await ledgerStore.getComments(id)
     commentsArray.value = ledgerStore.ledgerInfo.commentsInfo
-    // console.log(commentsArray.value)
+    locationData()
 })
-// const {ledgerInfo} = storeToRefs(ledgerStore)
 
-//将文章图片url分割成数组
+const locationData = () => {
+    //将文章图片url分割成数组
 PostInfo.value = { ...ledgerStore.ledgerInfo.postInfo[0] }
 PostInfo.value.userInfo = ledgerStore.ledgerInfo.userInfo[0]
 // PostInfo.value.postInfo= ledgerStore.ledger.postInfo[0]
 PostInfo.value.post_image_url = ledgerStore.ledgerInfo.postInfo[0].post_image_url.split('&').map(item => {
     return imageSrc(item)
 })
-postAvatarUrl.value = imageSrc(ledgerStore.ledgerInfo.userInfo[0].user_pic)
+postAvatarUrl.value = ledgerStore.ledgerInfo.userInfo[0].user_pic
+
+}
 
 
 const inputRef = ref(null)
@@ -54,7 +51,7 @@ const { y } = useScroll(contentBox)
 //     console.log(ledgerStore.ledger.value)
 //     console.log(commentsArray.value)
 // })
-//@功能样式
+//@功能样式存储当前被@对象信息
 const atUserInfo = ref({})
 const isFocued = ref(0)
 const atUser = (obj) => {
@@ -62,29 +59,47 @@ const atUser = (obj) => {
     isFocued.value = 1
     inputRef.value.focus()
 }
+//评论框内容
 const comment_value = ref('')
 //评论
-const commentSubmit = () => {
-    // 发送评论
+const commentSubmit = async () => {
+    // 发送回复
     if (atUserInfo.value != 0) {
-        pulishReplyAPI({
+        //提取·需要发送的评论ID
+        const id =atUserInfo.value.reply_comment_id ? atUserInfo.value.reply_comment_id : atUserInfo.value.comment_id
+       await pulishReplyAPI({
             user_id,
             content: comment_value.value,
-            comment_id: atUserInfo.value.reply_comment_id ? atUserInfo.value.reply_comment_id : atUserInfo.value.comment_id,
+            //判断是否有回复评论id，还是回复其他回复的评论id
+            comment_id: id ,
             reply_user_id: atUserInfo.value.reply_user_id
-        })
-        //发送回复
-    } else {
+       })
+            //发表评论后，获取新数据
+            /*commentsArray赋值要在ledgerStore.getLedger之后，
+             因为ledgerStore.getLedger进行了异步操作，在外面赋值会导致commentsArray的值不是最准确的值*/
+            //获取回复
+        //    await ledgerStore.getComments(19)
+           await ledgerStore.getReply(id, limit.value)
+
+    } else {//发送评论
         pulishCommentAPI(
             comment_value.value,
             id,
             user_id,
             atUserInfo.value
         )
+        //发表评论后，获取新数据
+       await ledgerStore.getLedger({ id })
+            //获取ledger信息时，顺便获取评论信息
+            /*commentsArray赋值要在ledgerStore.getLedger之后，
+             因为ledgerStore.getLedger进行了异步操作，在外面赋值会导致commentsArray的值不是最准确的值*/
+        commentsArray.value = ledgerStore.ledgerInfo.commentsInfo
     }
-    // if (atUserInfo.value!==null) {
-    // console.log(atUserInfo.value)
-    // }
+    //评论被发送后，输出框清零，样式清零
+    isFocued.value = 0
+    atUserInfo.value = {}
+    comment_value.value = null
+
 }
 
 /**
@@ -96,29 +111,41 @@ const commentSubmit = () => {
 // const showMore=ref(false)
 const loading = ref(false)
 const expended = ref({})
-const toggleShow = ((id) => {
+const Show = ((id) => {
     return expended.value[id]
 })
-
+const triggerShow = (id) => {
+    expended.value[id] = !expended.value[id]
+}
+const limit = ref(5)
 //获取回复
-const getReply = async (items) => {
-    // showMore.value =!showMore.value
-    //是否显示评论数据，如果存在则赋值为false，否则true
-    expended.value[items.comment_id] = expended.value[items.comment_id] ? false : true
+const getReply = async (id) => {
+    console.log(id)
+    expended.value[id] = true,
     loading.value = true
-        ledgerStore.getReply({ id: items.comment_id }).then(() => {
-            loading.value = false
-        })
-} 
+    await ledgerStore.getReply(id, limit.value)
+    loading.value = false
+}
 
 //点赞
-// const likeSubmit = (obj) => {
-//     console.log(obj)
-//     pulishLikeAPI({
-//         obj
+const likeSubmit =async ( {id, method} ) => {
+    console.log(user_id, id, method)
+    await pulishLikeAPI(
+        user_id, id, method
+    )
+    await 
+    // switch (method) {
+    //     case 'like':
+    //         ledgerStore.ledgerInfo.postInfo[0].like_count++
+    //         break;
+    //     case 'unlike':
+    //         ledgerStore.ledgerInfo.postInfo[0].like_count--
+    //         break;
+    //     default:
+    //         break;
+    // }
 
-//     })
-// }
+}
 
 </script>
 
@@ -137,7 +164,7 @@ const getReply = async (items) => {
         <div class="right">
             <div class="nav-box" :class="{ 'border': y > 70 }">
                 <div class="user-info">
-                    <el-avatar :size="50" :src="postAvatarUrl"></el-avatar>
+                    <el-avatar :size="50" :src="imageSrc(postAvatarUrl)"></el-avatar>
                     <span style="margin-left: 10px; font-size: 16px;">{{ PostInfo.userInfo.nick_name }}</span>
                 </div>
                 <el-button type="primary">关注</el-button>
@@ -154,16 +181,16 @@ const getReply = async (items) => {
                     <div class="total">
                         <p>共<span>123</span>条评论</p>
                     </div>
-                    <div class="comment-list" v-loading="loading" >
+                    <div class="comment-list" v-loading="loading">
                         <!-- 评论组件 -->
                         <div class="comment" v-for="items in commentsArray" :key="items.comment_id">
-                            <el-avatar :size="35" :src="items.user_pic"></el-avatar>
-                            <div class="content" >
+                            <el-avatar :size="35" :src="imageSrc(items.user_pic)"></el-avatar>
+                            <div class="content">
                                 <div class="commment-auther">{{ items.nick_name }}</div>
                                 <div class="comment-text">{{ items.comment_content }}</div>
                                 <div class="time">{{ items.comment_time }}</div>
                                 <div class="comment-reply">
-                                    <el-button text @click="likeSubmit({ comment_id: items.comment_id })">
+                                    <el-button text @click="likeSubmit({ id: items.comment_id,method:'comment' })">
                                         <i style="color: red;" class="iconfont icon-like-true" />
                                         <span>{{ items.comment_likes_count }}</span>
                                     </el-button>
@@ -172,24 +199,24 @@ const getReply = async (items) => {
                                     </el-button>
                                 </div>
                                 <!-- 回复数据组件 -->
-                                <div class="show-more"  v-show="!items.replies && !toggleShow(items.comment_id)">
-                                    <!-- -->
-                                    <el-button text @click="getReply(items)" >
-                                        {{ (items.replies && toggleShow(items.comment_id)) ? '收起' : '加载更多' }}</el-button>
+                                <div class="show-more">
+                                    <el-button text v-show="Show(items.comment_id) && items.replies.length > 0"
+                                        @click="triggerShow(items.comment_id)">收起</el-button>
                                 </div>
-                                <div class="reply-comment"  v-show="items.replies && toggleShow(items.comment_id)">
-                                    <div class="reply-list" v-for="item in items.replies" :key="item.reply_id">
-                                        <el-avatar :size="25" :src="item.user_pic"></el-avatar>
+                                <!-- v-show="items.replies && toggleShow(items.comment_id)" -->
+                                <div class="reply-list" v-show="Show(items.comment_id)">
+                                    <div class="reply-item" v-for="item in items.replies" :key="item.reply_id">
+                                        <el-avatar :size="25" :src="imageSrc(item.user_pic)"></el-avatar>
                                         <div class="content">
                                             <div class="commment-auther">{{ item.nick_name }}</div>
                                             <div class="comment-text">
-                                                <span v-show="item.replied_user_nick_name !== null">
+                                                <span v-show="item.replied_user_nick_name !== null" style="color:#fec887;">
                                                     回复 {{ item.replied_user_nick_name }}：
                                                 </span> {{ item.reply_content }}
                                             </div>
                                             <div class="time">{{ item.reply_time }}</div>
                                             <div class="comment-reply">
-                                                <el-button text @click="likeSubmit({ reply_id: item.reply_id })">
+                                                <el-button text @click="likeSubmit({id: item.reply_id,method:'reply' })">
                                                     <i
                                                         class="iconfont icon-like-false" /><span>{{ item.reply_likes_count }}</span></el-button>
                                                 <el-button @click="atUser(item)" text> <i
@@ -197,6 +224,11 @@ const getReply = async (items) => {
                                             </div>
                                         </div>
                                     </div>
+                                </div>
+                                <div class="show-more">
+                                    <el-button text @click="getReply(items.comment_id)"
+                                        v-show="!Show(items.comment_id) || !(items.replies?.length === 0 )"
+                                        style="color:#fec887;">加载更多</el-button>
                                 </div>
                             </div>
                         </div>
@@ -214,8 +246,8 @@ const getReply = async (items) => {
                 <input class="comment-input" v-model="comment_value" @click="atUser(isFocued ? atUserInfo : 0)"
                     type="textarea" ref="inputRef" placeholder="说点啥吧" />
                 <div class="other">
-                    <el-button text @click="likeSubmit({ post_id: PostInfo.post_id })"><i
-                            class="iconfont icon-like-true"></i><span>13k</span></el-button>
+                    <el-button text @click="likeSubmit({id: PostInfo.post_id ,method:'post'})"><i
+                            class="iconfont icon-like-true"></i><span>{{PostInfo.post_likes_count  }}</span></el-button>
                     <el-button text> <i class="iconfont icon-comment_light"></i><span>13k</span></el-button>
                     <el-button text> <i class="iconfont icon-shoucang-true"></i><span>13k</span></el-button>
                     <el-button text> <i class="iconfont icon-zhuanfa" /></el-button>
@@ -235,11 +267,9 @@ const getReply = async (items) => {
 }
 
 .time {
-
     margin: 5px 0;
     font-size: 12px;
     color: #999;
-
 }
 
 .border {
@@ -388,8 +418,7 @@ const getReply = async (items) => {
 
                         }
 
-                        .reply-comment {
-                            margin: 10px 0;
+                        .reply-list {
                             flex: 2;
                             padding: 8px;
                         }
@@ -397,8 +426,11 @@ const getReply = async (items) => {
                 }
             }
 
-            .reply-list {
+            .reply-item {
+                box-sizing: border-box;
                 display: flex;
+                padding-top: 5px;
+                border-top: #9999990e 1px solid;
 
                 .content {
                     margin: 5px 0;

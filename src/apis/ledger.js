@@ -57,12 +57,13 @@ export function getCommentAPI({id}) {
 }
 
 //获取回复
-export function getReplyAPI({id}) {
+export function getReplyAPI(id,limit) {
     return request({
       url: '/ledger/getReply',
       method: 'get',
-      params: {
-       id
+     params: {
+        id,
+        limit
       }
   })
 }
@@ -82,12 +83,12 @@ export function pulishReplyAPI({ user_id, content, comment_id, reply_user_id}) {
 }
 
 //点赞
-export function pulishLikeAPI(obj) {
+export function pulishLikeAPI(user_id,id,method) {
     return request({
       url: '/ledger/publishLike',
       method: 'post',
       data: {
-       obj
+        user_id, id, method
       }
   })
 }

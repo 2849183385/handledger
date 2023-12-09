@@ -50,3 +50,14 @@ export const updateAvatarAPI = (user_id,avatar) => {
         }
     })
 }
+
+//获取用户点赞数据
+export const getLikesAPI = (user_id) => {
+    return request({
+        url: '/user/getLikes',
+        method: 'get',
+        params: {
+            user_id
+        }
+    })
+}

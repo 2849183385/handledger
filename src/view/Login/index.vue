@@ -68,11 +68,13 @@ const doLogin = async () => {
     if (valid) {
       //ToDo Login 
       await userStore.getToken({ account, password })
-      await userStore.getUserInfo(account)
-      ElMessage({
+      await userStore.getUserInfo(account).then(async () => {
+         ElMessage({
         type:'success',
         message: '登录成功'
+         })
       })
+      await userStore.getLikes(userStore.userInfo.user_id)
       // Router.replace('/')
       Router.push('/')
     }
@@ -160,8 +162,6 @@ watch(isLogin, () => {
 
   </div>
 </template>
-
-
 
 <style lang="scss" scoped>
 .container {

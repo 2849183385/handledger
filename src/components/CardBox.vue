@@ -37,7 +37,7 @@ imgUrl.value = imageSrc(userInfo.value.user_pic)
                     </div>
                     <div class="creator-info">
                         <div class="creator-name ">
-                            <el-avatar :size="35" :src="imageSrc(userStore.userInfo.user_pic)"></el-avatar>
+                            <el-avatar :size="35" :src="imgUrl"></el-avatar>
                             <span style="margin-left: 10px; font-size: 16px;">chan</span>
                         </div>
                         <span class="creator-time">
