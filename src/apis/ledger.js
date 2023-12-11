@@ -5,90 +5,113 @@ export function getLedgerListAPI() {
   return request({
     url: '/ledger/list',
     method: 'get',
-    
+
   })
 }
 
 //获取文章详情
-export function getLedgerAPI({id}) {
+export function getLedgerAPI(id) {
   return request({
     url: '/ledger/getLedger',
     method: 'get',
     params: {
-      id,
+      id
     }
   })
 }
 //发布文章
-export function pulishLedgerAPI(obj,user_id) {
-    return request({
-      url: '/ledger/publishLedger',
-        method: 'post',
-      data: {
-          title:obj.title,
-          content:obj.content,
-          image_url:obj.image_url,
-          user_id,
-      }
+export function pulishLedgerAPI(obj, user_id) {
+  return request({
+    url: '/ledger/publishLedger',
+    method: 'post',
+    data: {
+      title: obj.title,
+      content: obj.content,
+      image_url: obj.image_url,
+      user_id,
+    }
   })
 }
 
 //发表评论
-export function pulishCommentAPI(content,post_id,user_id) {
-    return request({
-      url: '/ledger/publishComment',
-      method: 'post',
-      data: {
-          content,
-          post_id,
-          user_id,
-      }
+export function pulishCommentAPI(content, post_id, user_id) {
+  return request({
+    url: '/ledger/publishComment',
+    method: 'post',
+    data: {
+      content,
+      post_id,
+      user_id,
+    }
   })
 }
 //获取评论
-export function getCommentAPI({id}) {
-    return request({
-      url: '/ledger/getComments',
-      method: 'get',
-      params: {
-       id,
-      }
+export function getCommentAPI(id,limit,offset) {
+  return request({
+    url: '/ledger/getComments',
+    method: 'get',
+    params: {
+      id,limit,offset
+    }
   })
 }
 
 //获取回复
-export function getReplyAPI(id,limit) {
-    return request({
-      url: '/ledger/getReply',
-      method: 'get',
-     params: {
-        id,
-        limit
-      }
+export function getReplyAPI(id, limit, offset) {
+  return request({
+    url: '/ledger/getReply',
+    method: 'get',
+    params: {
+      id,
+      limit,
+      offset
+    }
   })
 }
 
 //发表回复
-export function pulishReplyAPI({ user_id, content, comment_id, reply_user_id}) {
-    return request({
-      url: '/ledger/publishReply',
-      method: 'post',
-      data: {
-        user_id,
-        content,
-        comment_id,
-        reply_user_id
-      }
+export function pulishReplyAPI({ user_id, content, comment_id, reply_user_id }) {
+  return request({
+    url: '/ledger/publishReply',
+    method: 'post',
+    data: {
+      user_id,
+      content,
+      comment_id,
+      reply_user_id
+    }
   })
 }
 
 //点赞
-export function pulishLikeAPI(user_id,id,method) {
-    return request({
-      url: '/ledger/publishLike',
-      method: 'post',
-      data: {
-        user_id, id, method
-      }
+export function pulishLikeAPI(user_id, id, method) {
+  return request({
+    url: '/ledger/publishLike',
+    method: 'post',
+    data: {
+      user_id, id, method
+    }
+  })
+}
+//取消点赞
+export function cancelLikeAPI(user_id, id, method) {
+  return request({
+    url: '/ledger/cancelLikes',
+    method: 'post',
+    data: {
+      user_id, id, method
+    }
+  })
+}
+
+//获取点赞 
+export function getLikeAPI(id, method) {
+  return request({
+    url: '/ledger/getLike',
+    method: 'get',
+    params: {
+      id,
+     method
+    }
   })
 }

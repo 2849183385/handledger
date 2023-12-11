@@ -1,73 +1,126 @@
 import { defineStore } from "pinia";
 import { ref } from 'vue'
-import { getLedgerAPI, getLedgerListAPI, getCommentAPI, getReplyAPI } from '@/apis/ledger'
+import { getLedgerAPI, getLedgerListAPI, getCommentAPI, getReplyAPI, getLikeAPI } from '@/apis/ledger'
 export const useLedgerStore = defineStore("ledger", () => {
     const ledgerInfo = ref([])
     const ledgerList = ref([])
     /**
      * 获取单条记录
      * @param {*} id 获取的文章id
+     * 请求到数据后，保存到本地ledgerInfo中,同时发送请求获取评论请求getComments(id)
      */
-    const getLedger = async ({ id }) => {
+    const getLedger = async (id) => {
         //获取文章详情
-        await getLedgerAPI({ id }).then(async (res) => {
-            // 不要
-            await setLedger(res.data.data)
-            await getComments(id)
-            //    console.log(res1)
+        await getLedgerAPI(id).then((res) => {
+            setLedger(res.data.data)
         })
         //获取评论详情
-       
+
         // console.log(commentList)
         //获取回复详情
     }
-    const getComments = async (id) => {
-            const res = await getCommentAPI( {id} )
-        ledgerInfo.value.commentsInfo = res.data.data
+    /**
+     * 获取评论
+     * @param {*} id 文章id
+     * 请求到数据后，保存到本地ledgerInfo.value.commentsInfo中
+     */
+    const getComments = async (id, limit) => {
+        let offset = null
+        // console.log(offset)
+        try {
+            offset = ledgerInfo.value.commentsInfo ? ledgerInfo.value.commentsInfo.length : 0
+            const res = await getCommentAPI(id, limit, offset)
+            //评论数据存储到本地
+            ledgerInfo.value.commentsInfo = ledgerInfo.value.commentsInfo ? (ledgerInfo.value.commentsInfo.concat(res.data.data)) : res.data.data
+        } catch (error) {
+            console.log(error);
         }
+    }
     const getLedgerList = async () => {
         ledgerList.value = await getLedgerListAPI()
     }
-
+    /**
+     * 获取回复
+     * @param {*} id 评论id
+     * @param {*} limit 回复数量
+     * for循环找出评论id，并以该ID发送请求，获取回复内容，获取结果后插入该评论，回复数量也进行更新
+     */
     const getReply = async (id, limit) => {
+        let offset = null
         //找出评论id，
         for (let i = 0; i < ledgerInfo.value.commentsInfo.length; i++) {
-            //找到评论id
             if (ledgerInfo.value.commentsInfo[i].comment_id === id) {
-                //判断是否存在回复内容,和回复内容的长度
-                //如果不存在或者长度为零，则请求5段数据
-                if (!ledgerInfo.value.commentsInfo[i].replies) {
-                     try {
-                        console.log(id,limit)
-                         const res = await getReplyAPI(id, limit)
-                         ledgerInfo.value.commentsInfo[i].replies = res.data.data
-                         //评论数量也进行更新(评论数量在这里返回)
-                         console.log(res.data.data[0].reply_count)
-                         ledgerInfo.value.commentsInfo[i].reply_count = res.data.data[0].reply_count
-                    }catch (error) {
-                        console.log(error)
-                        }
-                    } else {
-                    //否则请求回复内容长度 + 5段数据
-                    limit =ledgerInfo.value.commentsInfo[i].replies.length + 5;
-                    console.log(id, limit)
-                        try {
-                            const res = await getReplyAPI(id, limit)
-                            ledgerInfo.value.commentsInfo[i].replies = res.data.data
-                            //评论数量也进行更新
-                            console.log(res.data.data[0].reply_count)
-                            ledgerInfo.value.commentsInfo[i].reply_count = res.data.data[0].reply_count
-                        }catch (error) {
-                            console.log(error)
+                offset = ledgerInfo.value.commentsInfo[i].replies ? ledgerInfo.value.commentsInfo[i].replies.length : 0
+                console.log(offset)
+                //找到评论id
+                const res = await getReplyAPI(id, limit, offset)
+                console.log(res.data.data)
+                if (res.data.data === '') {
+                    console.log('没有更多数据')
+                    return
                 }
-                }
-                   
+                //将返回结果添加到该评论的回复中
+                //判断是否存在回复内容,如果存在则原数据和返回数据两数组合并,否则直接赋值
+                ledgerInfo.value.commentsInfo[i].replies = ledgerInfo.value.commentsInfo[i].replies ? (ledgerInfo.value.commentsInfo[i].replies.concat(res.data.data)) : res.data.data
+                console.log(res.data.data[0].reply_count)
+                //回复数量也进行更新
+                ledgerInfo.value.commentsInfo[i].reply_count = res.data.data[0].reply_count
                 break
             }
+
         }
+    }
+    const getLike = async (id, method,comment_id) => {
+        const res = await getLikeAPI(id, method)
+        switch (method) {
+            case 'post':
+                console.log('post',res.data.data)
+                ledgerInfo.value.article.post_likes_count=res.data.data.post_likes_count
+                break;
+            case 'comment':
+                console.log('comment', res.data.data)
+                console.log(ledgerInfo.value.commentsInfo)
+                for (let i = 0; i < ledgerInfo.value.commentsInfo.length; i++) {
+                    if (ledgerInfo.value.commentsInfo[i].comment_id === id) {
+                        // console.log(ledgerInfo.value.commentsInfo[i])
+                        ledgerInfo.value.commentsInfo[i].comment_likes_count = res.data.data.comment_likes_count
+                        // console.log(ledgerInfo.value.commentsInfo[i])
+                        // console.log(ledgerInfo.value.commentsInfo[i].comment_likes_count)
+                        // console.log(res.data.data.comment_likes_count)
+                        return
+                    }
+                }
+                break;
+            case 'reply':
+                console.log('reply',res.data.data)
+                for (let i = 0; i < ledgerInfo.value.commentsInfo.length; i++) {
+                   
+                    if (ledgerInfo.value.commentsInfo[i].comment_id === comment_id) {
+                        console.log(ledgerInfo.value.commentsInfo[i])
+                        for (let j = 0; j < ledgerInfo.value.commentsInfo[i].replies.length; j++){
+
+                            if (ledgerInfo.value.commentsInfo[i].replies[j].reply_id === id) {
+                                console.log(ledgerInfo.value.commentsInfo[i].replies[j])
+                                console.log(ledgerInfo.value.commentsInfo[i].replies[j].reply_likes_count)
+                                ledgerInfo.value.commentsInfo[i].replies[j].reply_likes_count = res.data.data.reply_likes_count
+                                console.log(ledgerInfo.value.commentsInfo[i].replies[j].reply_likes_count)
+                                console.log(res.data.data.reply_likes_count)
+                               return
+                           }
+                       }
+                    }
+                }
+                break;
+            default:
+                break;
+        }
+        console.log(res.data.data)
     }
     const setLedger = (data) => {
         ledgerInfo.value = data
+    }
+    const cleanLedger = () => {
+        ledgerInfo.value = {}
     }
     return {
         ledgerInfo,
@@ -76,7 +129,9 @@ export const useLedgerStore = defineStore("ledger", () => {
         getComments,
         getLedgerList,
         getReply,
-        setLedger
+        getLike,
+        setLedger,
+        cleanLedger
     }
 }, {
     persist: true

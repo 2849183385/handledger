@@ -8,7 +8,7 @@ import { ElMessage } from 'element-plus'
 
 const size = ref('large')
 const Router = useRouter()
-
+const loading = ref(false)
 const isLogin = ref(true)
 function toggleLayout() {
   isLogin.value = !isLogin.value
@@ -56,7 +56,7 @@ const rules = ({
   ]
 })
 
-
+ 
 //登录前的统一校验
 const formRef = ref(null)
 const userStore = useUserStore()
@@ -64,35 +64,51 @@ const doLogin = async () => {
   const { account, password } = form.value
   //表单中ref绑定的时formRef，所以formRef是表单这个标签对象，进行验证时，对表单进行验证，而不是对form进行验证
   await formRef.value.validate(async (valid) => {
+    console.log(1)
     // valid所有验证都通过才为true
     if (valid) {
+      loading.value = true
       //ToDo Login 
+      try {
       await userStore.getToken({ account, password })
-      await userStore.getUserInfo(account).then(async () => {
-         ElMessage({
+      await userStore.getUserInfo(account)
+        ElMessage({
         type:'success',
         message: '登录成功'
          })
-      })
       await userStore.getLikes(userStore.userInfo.user_id)
       // Router.replace('/')
       Router.push('/')
+      } catch (error) {
+        loading.value = false
+        console.log(error)
+        ElMessage({
+          type:'error',
+          message: error.message||'登录失败'
+        })
+      }
     }
   })
+  
+  console.log(1)
 }
 
 const doRegister = async () => {
+ 
   const { account, password } = form.value
    await formRef.value.validate(async (valid) => {
-    if (valid) {
+     if (valid) {
+       loading.value = true
       await registerAPI({ account, password })
+      
       ElMessage({
         type:'success',
         message: '注册成功'
       })
       toggleLayout()
     }
-  })
+   })
+  loading.value = false
 }
 watch(isLogin, () => {
   form.value = {
@@ -103,7 +119,7 @@ watch(isLogin, () => {
 })
 </script>
 <template>
-  <div class="container">
+  <div class="container" v-loading="loading">
     <div class="header">
       <div class="logo">
         <span>chan</span>
@@ -279,7 +295,6 @@ watch(isLogin, () => {
 }
 
 h1 {
-
   color: #33679e;
   display: block;
   font-size: 2em;

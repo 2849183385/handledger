@@ -6,7 +6,7 @@ import { ElMessage } from "element-plus";
 const baseURL= 'http://127.0.0.1:8080'
 const request = axios.create({
     baseURL,
-    timeout:5000
+    timeout:3000
 })
 
 
@@ -34,7 +34,6 @@ request.interceptors.response.use(
             useStore.removeToken
             router.push('/login')
         }
-        console.log(response.data)
         ElMessage.error(response.data || '服务异常')
         return Promise.reject(response.data)
         

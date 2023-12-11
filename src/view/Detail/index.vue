@@ -1,56 +1,45 @@
 <script setup>
-import { ref, watch, onMounted } from 'vue'
+import { ref,  onMounted, toRefs } from 'vue'
 import { useScroll } from '@vueuse/core'
 import { useLedgerStore } from '@/stores/ledgerStore'
 import { useUserStore } from '@/stores/userStore'
 // import { formatDates } from '@/utils/format'
 import { imageSrc } from '@/utils/imageSrc'
-import { pulishCommentAPI, pulishReplyAPI, pulishLikeAPI, } from '@/apis/ledger'
+import { likeStatus } from '@/utils/likeStatus'
+import { pulishCommentAPI, pulishReplyAPI, pulishLikeAPI, cancelLikeAPI } from '@/apis/ledger'
 const ledgerStore = useLedgerStore()
-const { userInfo: { user_id } } = useUserStore()
+const userStore = useUserStore()
+const { userInfo } = userStore
+const { likes } = toRefs(userInfo)
+const user_id = userInfo.user_id
+// console.log(likes.value.commentid)
+const limit = 5
 const id = 19
-// const post_id = 19
+const post_id = 19
 // const comment_post_id = 19
 
 //文章信息
-const PostInfo = ref({})
-const postAvatarUrl = ref(null)
-const commentsArray = ref([])
 
-onMounted(() => {
-    
-})
 //发送获取文章信息请求
-ledgerStore.getLedger({ id }).then( async () => {
-    /*commentsArray赋值要在ledgerStore.getLedger之后，
-     因为ledgerStore.getLedger进行了异步操作，在外面赋值会导致commentsArray的值不是最准确的值*/
-    
-    // await ledgerStore.getComments(id)
-    commentsArray.value = ledgerStore.ledgerInfo.commentsInfo
-    locationData()
+ledgerStore.getLedger(id).then(() => {
+    // locationData()
+    // ledgerStore.getComments(id, limit)
 })
-
-const locationData = () => {
+// ledgerStore.ledgerInfo.article.post_image_url = ledgerStore.ledgerInfo.article.post_image_url.split('&').map(item => {
+//     return imageSrc(item)
+// })
+// const locationData = () => {
     //将文章图片url分割成数组
-PostInfo.value = { ...ledgerStore.ledgerInfo.postInfo[0] }
-PostInfo.value.userInfo = ledgerStore.ledgerInfo.userInfo[0]
-// PostInfo.value.postInfo= ledgerStore.ledger.postInfo[0]
-PostInfo.value.post_image_url = ledgerStore.ledgerInfo.postInfo[0].post_image_url.split('&').map(item => {
-    return imageSrc(item)
-})
-postAvatarUrl.value = ledgerStore.ledgerInfo.userInfo[0].user_pic
-
-}
-
-
+   
+    // PostInfo.value.postInfo= ledgerStore.ledger.postInfo[0]
+    // articleInfo.value.postInfo.post_image_url = ledgerStore.ledgerInfo.postInfo.post_image_url.split('&').map(item => {
+    //     return imageSrc(item)
+    // })
+    // postAvatarUrl.value = ledgerStore.ledgerInfo.userInfo.user_pic
+// }
 const inputRef = ref(null)
 const contentBox = ref(null)
 const { y } = useScroll(contentBox)
-// watch(y, (val) => {
-//     console.log(val)
-//     console.log(ledgerStore.ledger.value)
-//     console.log(commentsArray.value)
-// })
 //@功能样式存储当前被@对象信息
 const atUserInfo = ref({})
 const isFocued = ref(0)
@@ -66,34 +55,34 @@ const commentSubmit = async () => {
     // 发送回复
     if (atUserInfo.value != 0) {
         //提取·需要发送的评论ID
-        const id =atUserInfo.value.reply_comment_id ? atUserInfo.value.reply_comment_id : atUserInfo.value.comment_id
-       await pulishReplyAPI({
+        const id = atUserInfo.value.reply_comment_id ? atUserInfo.value.reply_comment_id : atUserInfo.value.comment_id
+        await pulishReplyAPI({
             user_id,
             content: comment_value.value,
             //判断是否有回复评论id，还是回复其他回复的评论id
-            comment_id: id ,
+            comment_id: id,
             reply_user_id: atUserInfo.value.reply_user_id
-       })
-            //发表评论后，获取新数据
-            /*commentsArray赋值要在ledgerStore.getLedger之后，
-             因为ledgerStore.getLedger进行了异步操作，在外面赋值会导致commentsArray的值不是最准确的值*/
-            //获取回复
+        })
+        //发表评论后，获取新数据
+        /*commentsArray赋值要在ledgerStore.getLedger之后，
+         因为ledgerStore.getLedger进行了异步操作，在外面赋值会导致commentsArray的值不是最准确的值*/
+        //获取回复
         //    await ledgerStore.getComments(19)
-           await ledgerStore.getReply(id, limit.value)
+        await ledgerStore.getReply(id, limit)
 
     } else {//发送评论
-        pulishCommentAPI(
+        await pulishCommentAPI(
             comment_value.value,
             id,
             user_id,
             atUserInfo.value
         )
         //发表评论后，获取新数据
-       await ledgerStore.getLedger({ id })
-            //获取ledger信息时，顺便获取评论信息
-            /*commentsArray赋值要在ledgerStore.getLedger之后，
-             因为ledgerStore.getLedger进行了异步操作，在外面赋值会导致commentsArray的值不是最准确的值*/
-        commentsArray.value = ledgerStore.ledgerInfo.commentsInfo
+        await ledgerStore.getLedger(id)
+        //获取ledger信息时，顺便获取评论信息
+        /*commentsArray赋值要在ledgerStore.getLedger之后，
+         因为ledgerStore.getLedger进行了异步操作，在外面赋值会导致commentsArray的值不是最准确的值*/
+        // commentsArray.value = ledgerStore.ledgerInfo.commentsInfo
     }
     //评论被发送后，输出框清零，样式清零
     isFocued.value = 0
@@ -101,7 +90,10 @@ const commentSubmit = async () => {
     comment_value.value = null
 
 }
-
+const cancel = () => {
+    isFocued.value = 0
+    atUserInfo.value = {}
+}
 /**
  * 显示评论逻辑
  * 定义一个对象expended{}，用于存储是否显示评论的数据，key为评论id，value为是否显示评论数据
@@ -111,51 +103,103 @@ const commentSubmit = async () => {
 // const showMore=ref(false)
 const loading = ref(false)
 const expended = ref({})
-const Show = ((id) => {
-    return expended.value[id]
-})
-const triggerShow = (id) => {
-    expended.value[id] = !expended.value[id]
-}
-const limit = ref(5)
+//是否显示评论
+// const Show = ((id) => {
+//     return expended.value[id]
+// })
+// const triggerShow = (id) => {
+//     expended.value[id] = !expended.value[id]
+// }
 //获取回复
 const getReply = async (id) => {
     console.log(id)
     expended.value[id] = true,
-    loading.value = true
-    await ledgerStore.getReply(id, limit.value)
+        loading.value = true
+    await ledgerStore.getReply(id, limit).then(() => {
+        console.log(1);
+    })
     loading.value = false
 }
-
-//点赞
-const likeSubmit =async ( {id, method} ) => {
-    console.log(user_id, id, method)
-    await pulishLikeAPI(
-        user_id, id, method
-    )
-    await 
-    // switch (method) {
-    //     case 'like':
-    //         ledgerStore.ledgerInfo.postInfo[0].like_count++
-    //         break;
-    //     case 'unlike':
-    //         ledgerStore.ledgerInfo.postInfo[0].like_count--
-    //         break;
-    //     default:
-    //         break;
-    // }
-
+/**
+ * 点赞流程
+ * 1.发送点赞请求
+ * 2.更新用户点赞表数据
+ * 3.获取文章新数据
+ */
+const publishLike = async (user_id, id, method) => {
+    await pulishLikeAPI(user_id, id, method)
+    await userStore.getLikes(user_id)
+    // await ledgerStore.getLedger(19)
 }
+/**
+ * 取消点赞
+ * 1.发送取消点赞请求
+ * 2.更新用户点赞表数据
+ */
+const cancelLike = async (user_id, id, method) => {
+    await cancelLikeAPI(user_id, id, method)
+    await userStore.getLikes(user_id)
+    // await ledgerStore.getComments(post_id,limit)
+    // await ledgerStore.getLedger(post_id)
+}
+//点赞
+const likeSubmit = async ({ id, method,comment_id }) => {
+    //判断用户是否给这个点过赞，点过则发送取消请求，
+    if (likeStatus(id, method, likes.value)) {
+        console.log('取消点赞')
+        await cancelLike(user_id, id, method)
+        ledgerStore.getLike(id,method,comment_id)
+    } else {
+        console.log('点赞')
+        //点赞
+        await publishLike(user_id, id, method)
+        //点赞后更新用户点赞表数据
+        ledgerStore.getLike(id, method, comment_id)
 
+    }
+}
+// console.log(likes.value)
+// console.log(likeStatus(19, 'post', likes.value))
+//要获取一个dom，首先需要声明一个容器 ref(null) 然后在模板中绑定
+const card = ref(null)
+const loadMore = ref(null)
+const option = {
+        delay:500,
+        root: card.value,
+        rootMargin: '0px 0px 600px 0px',
+        threshold: 1,
+    }
+onMounted(() => {
+
+    //用户划到评论底部时，触发加载更多数据网络请求逻辑
+    //在评论组件最底部，添加一个加载更多动画，如果加载更多动画进入可视区，触发回调函数
+    // 监听评论列表是否进入可见区域参数
+    const observer = new IntersectionObserver((entries) => {
+        // if(ledgerStore.ledgerInfo.commentsInfo.length)
+        console.log('entries',entries,'option',option)
+        entries.forEach((entry) => {
+            if (entry.intersectionRatio === 1) {
+                console.log('进入可见区域')
+            // if()
+                ledgerStore.getComments(post_id,limit)
+            }
+        })
+        
+    }, option)
+observer.observe(loadMore.value,option)
+})
+// onBeforeUnmount(()=>{
+//     observer.disconnect()
+// })
 </script>
 
 <template>
-    <div class="card">
+    <div class="card" ref="card">
         <div class="left" ref="left">
             <div class="img-box">
                 <el-carousel :interval="4000">
-                    <el-carousel-item height="" v-for="item in PostInfo.post_image_url" :key="item">
-                        <el-image ref="imageRef" :src="item" fit="scale-down" />
+                    <el-carousel-item height="" :key="item" v-for="item in ledgerStore.ledgerInfo.article.post_image_url.split('&')" >
+                        <el-image ref="imageRef" :src="imageSrc(item)" fit="scale-down" />
                     </el-carousel-item>
                 </el-carousel>
             </div>
@@ -164,34 +208,35 @@ const likeSubmit =async ( {id, method} ) => {
         <div class="right">
             <div class="nav-box" :class="{ 'border': y > 70 }">
                 <div class="user-info">
-                    <el-avatar :size="50" :src="imageSrc(postAvatarUrl)"></el-avatar>
-                    <span style="margin-left: 10px; font-size: 16px;">{{ PostInfo.userInfo.nick_name }}</span>
+                    <el-avatar :size="50" :src="imageSrc(ledgerStore.ledgerInfo.article.user_pic)"></el-avatar>
+                    <span style="margin-left: 10px; font-size: 16px;"></span>
                 </div>
                 <el-button type="primary">关注</el-button>
             </div>
-            <div class="content-box">
+            <div class="content-box" >
                 <div class="main-content">
-                    <div class="title">{{ PostInfo.post_title }}</div>
-                    <el-text>{{ PostInfo.post_content }}</el-text>
-                    <!-- <el-text>target</el-text> -->
-                    <div class="time">{{ PostInfo.post_time }}</div>
+                    <div class="title">{{ ledgerStore.ledgerInfo.article.post_title }}</div>
+                    <el-text>{{ ledgerStore.ledgerInfo.article.post_content }}</el-text>
+                    <div class="time">{{ ledgerStore.ledgerInfo.article.post_time }}</div>
                 </div>
                 <el-divider />
                 <div class="comment-box">
                     <div class="total">
                         <p>共<span>123</span>条评论</p>
-                    </div>
-                    <div class="comment-list" v-loading="loading">
+                    </div> 
+                    <!-- v-intersection-observer="loadMoreData()" -->
+                    <div class="comment-list" >
                         <!-- 评论组件 -->
-                        <div class="comment" v-for="items in commentsArray" :key="items.comment_id">
+                        <div class="comment" v-for="items in ledgerStore.ledgerInfo.commentsInfo" :key="items.comment_id">
                             <el-avatar :size="35" :src="imageSrc(items.user_pic)"></el-avatar>
                             <div class="content">
                                 <div class="commment-auther">{{ items.nick_name }}</div>
                                 <div class="comment-text">{{ items.comment_content }}</div>
                                 <div class="time">{{ items.comment_time }}</div>
-                                <div class="comment-reply">
-                                    <el-button text @click="likeSubmit({ id: items.comment_id,method:'comment' })">
-                                        <i style="color: red;" class="iconfont icon-like-true" />
+                                <div class="comment-reply" >
+                                    <el-button text @click="likeSubmit({ id: items.comment_id, method: 'comment' })">
+                                        <i class="iconfont icon-like-true"
+                                            :class="{ 'red': likeStatus(items.comment_id, 'comment', likes) }" />
                                         <span>{{ items.comment_likes_count }}</span>
                                     </el-button>
                                     <el-button text @click="atUser(items)"> <i class="iconfont icon-comment_light" />
@@ -199,12 +244,13 @@ const likeSubmit =async ( {id, method} ) => {
                                     </el-button>
                                 </div>
                                 <!-- 回复数据组件 -->
-                                <div class="show-more">
-                                    <el-button text v-show="Show(items.comment_id) && items.replies.length > 0"
-                                        @click="triggerShow(items.comment_id)">收起</el-button>
-                                </div>
+                                <!-- <div class="show-more">
+                                    <el-button text v-show="items.replies"
+                                        @click="triggerShow(items.comment_id)">{{ Show(items.comment_id) ? '收起' : '展开' }}</el-button>
+                                </div> -->
                                 <!-- v-show="items.replies && toggleShow(items.comment_id)" -->
-                                <div class="reply-list" v-show="Show(items.comment_id)">
+                                <!-- v-show="Show(items.comment_id)" -->
+                                <div class="reply-list" >
                                     <div class="reply-item" v-for="item in items.replies" :key="item.reply_id">
                                         <el-avatar :size="25" :src="imageSrc(item.user_pic)"></el-avatar>
                                         <div class="content">
@@ -216,9 +262,9 @@ const likeSubmit =async ( {id, method} ) => {
                                             </div>
                                             <div class="time">{{ item.reply_time }}</div>
                                             <div class="comment-reply">
-                                                <el-button text @click="likeSubmit({id: item.reply_id,method:'reply' })">
-                                                    <i
-                                                        class="iconfont icon-like-false" /><span>{{ item.reply_likes_count }}</span></el-button>
+                                                <el-button text @click="likeSubmit({ id: item.reply_id, method: 'reply' ,comment_id: items.comment_id })">
+                                                    <i class="iconfont icon-like-false"
+                                                        :class="{ 'red': likeStatus(item.reply_id, 'reply', likes) }" /><span>{{ item.reply_likes_count }}</span></el-button>
                                                 <el-button @click="atUser(item)" text> <i
                                                         class="iconfont icon-comment_light" /></el-button>
                                             </div>
@@ -226,16 +272,18 @@ const likeSubmit =async ( {id, method} ) => {
                                     </div>
                                 </div>
                                 <div class="show-more">
-                                    <el-button text @click="getReply(items.comment_id)"
-                                        v-show="!Show(items.comment_id) || !(items.replies?.length === 0 )"
+                                    <el-button text @click="getReply(items.comment_id)" v-show="items.reply_count !== items.replies?.length"
                                         style="color:#fec887;">加载更多</el-button>
                                 </div>
                             </div>
                         </div>
+                        <div class="load-item" ref="loadMore" >
+                           <el-text> 加载中</el-text>
+                        </div>
                     </div>
                 </div>
             </div>
-            <div :class="{ 'footer-blur': !isFocued, 'footer-focus': isFocued }">
+            <div :class="{ 'footer-blur': !isFocued, 'footer-focus': isFocued }" ref="footer" >
                 <div class="footer-top" v-show="atUserInfo !== 0 && isFocued">
                     <p>
                         <span>回复</span><span style="margin-left:5px">{{ atUserInfo.nick_name }}:</span>
@@ -246,15 +294,16 @@ const likeSubmit =async ( {id, method} ) => {
                 <input class="comment-input" v-model="comment_value" @click="atUser(isFocued ? atUserInfo : 0)"
                     type="textarea" ref="inputRef" placeholder="说点啥吧" />
                 <div class="other">
-                    <el-button text @click="likeSubmit({id: PostInfo.post_id ,method:'post'})"><i
-                            class="iconfont icon-like-true"></i><span>{{PostInfo.post_likes_count  }}</span></el-button>
-                    <el-button text> <i class="iconfont icon-comment_light"></i><span>13k</span></el-button>
+                    <el-button text @click="likeSubmit({ id: id, method: 'post'})"><i
+                            class="iconfont icon-like-true"
+                            :class="{ 'red': likeStatus(post_id, 'post', likes) }"></i><span>{{ ledgerStore.ledgerInfo.article.post_likes_count }}</span></el-button>
+                    <el-button text> <i class="iconfont icon-comment_light"></i><span>{{ ledgerStore.ledgerInfo.article.post_comments_count }}</span></el-button>
                     <el-button text> <i class="iconfont icon-shoucang-true"></i><span>13k</span></el-button>
                     <el-button text> <i class="iconfont icon-zhuanfa" /></el-button>
                 </div>
                 <div class="comment-btn">
                     <el-button type="primary" @click="commentSubmit"> 发送</el-button>
-                    <el-button @click="isFocued = 0">返回</el-button>
+                    <el-button @click="cancel">返回</el-button>
                 </div>
             </div>
         </div>
@@ -420,17 +469,16 @@ const likeSubmit =async ( {id, method} ) => {
 
                         .reply-list {
                             flex: 2;
-                            padding: 8px;
+                            
                         }
                     }
                 }
             }
-
             .reply-item {
                 box-sizing: border-box;
                 display: flex;
                 padding-top: 5px;
-                border-top: #9999990e 1px solid;
+                border-top: #99999904 1px solid;
 
                 .content {
                     margin: 5px 0;

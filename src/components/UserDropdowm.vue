@@ -3,10 +3,12 @@ import { ref , watch } from 'vue'
 import { useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus'
 import { useUserStore } from '@/stores/userStore';
+import { useLedgerStore } from '@/stores/ledgerStore';
 import { imageSrc } from '@/utils/imageSrc';
 import { storeToRefs } from 'pinia';
 const Router = useRouter()
 const userStore = useUserStore()
+const ledgerStore = useLedgerStore()
 const {userInfo} =storeToRefs(userStore)
 const confirmEvent = () => {
     userStore.removeToken()
@@ -15,6 +17,9 @@ const confirmEvent = () => {
         type: 'success',
         message: '退出成功'
     })
+    //退出登录，清除数据
+    userStore.cleanUserInfo()
+    ledgerStore.cleanLedger()
 }
 //监听图片更新后重新赋值
 watch(userInfo, () => {
