@@ -30,6 +30,7 @@ request.interceptors.response.use(
         const useStore = useUserStore()
         // 如果响应回来的status为0 说明登录成功，否则不成功
         if (response.data.status === 0) return response
+        if(response.data.status===200) return response
         if (response.data.status == 401) {
             useStore.removeToken
             router.push('/login')

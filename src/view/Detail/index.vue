@@ -1,12 +1,15 @@
 <script setup>
-import { ref,  onMounted, toRefs } from 'vue'
+import { ref, onMounted, toRefs } from 'vue'
 import { useScroll } from '@vueuse/core'
 import { useLedgerStore } from '@/stores/ledgerStore'
 import { useUserStore } from '@/stores/userStore'
 // import { formatDates } from '@/utils/format'
 import { imageSrc } from '@/utils/imageSrc'
 import { likeStatus } from '@/utils/likeStatus'
-import { pulishCommentAPI, pulishReplyAPI, pulishLikeAPI, cancelLikeAPI } from '@/apis/ledger'
+import { formatDate } from '@/utils/format'
+import { pulishCommentAPI, pulishReplyAPI, pulishLikeAPI, cancelLikeAPI, } from '@/apis/ledger'
+import { Delete } from '@element-plus/icons-vue';
+
 const ledgerStore = useLedgerStore()
 const userStore = useUserStore()
 const { userInfo } = userStore
@@ -17,25 +20,22 @@ const limit = 5
 const id = 19
 const post_id = 19
 // const comment_post_id = 19
-
+const imageArray = ref([])
 //文章信息
 
 //发送获取文章信息请求
-ledgerStore.getLedger(id).then(() => {
-    // locationData()
-    // ledgerStore.getComments(id, limit)
-})
+ledgerStore.getLedger(id)
 // ledgerStore.ledgerInfo.article.post_image_url = ledgerStore.ledgerInfo.article.post_image_url.split('&').map(item => {
 //     return imageSrc(item)
 // })
 // const locationData = () => {
-    //将文章图片url分割成数组
-   
-    // PostInfo.value.postInfo= ledgerStore.ledger.postInfo[0]
-    // articleInfo.value.postInfo.post_image_url = ledgerStore.ledgerInfo.postInfo.post_image_url.split('&').map(item => {
-    //     return imageSrc(item)
-    // })
-    // postAvatarUrl.value = ledgerStore.ledgerInfo.userInfo.user_pic
+//将文章图片url分割成数组
+
+// PostInfo.value.postInfo= ledgerStore.ledger.postInfo[0]
+// articleInfo.value.postInfo.post_image_url = ledgerStore.ledgerInfo.postInfo.post_image_url.split('&').map(item => {
+//     return imageSrc(item)
+// })
+// postAvatarUrl.value = ledgerStore.ledgerInfo.userInfo.user_pic
 // }
 const inputRef = ref(null)
 const contentBox = ref(null)
@@ -58,7 +58,7 @@ const commentSubmit = async () => {
         const id = atUserInfo.value.reply_comment_id ? atUserInfo.value.reply_comment_id : atUserInfo.value.comment_id
         await pulishReplyAPI({
             user_id,
-            content: comment_value.value,
+            content: comment_value.value.trim(),
             //判断是否有回复评论id，还是回复其他回复的评论id
             comment_id: id,
             reply_user_id: atUserInfo.value.reply_user_id
@@ -68,8 +68,8 @@ const commentSubmit = async () => {
          因为ledgerStore.getLedger进行了异步操作，在外面赋值会导致commentsArray的值不是最准确的值*/
         //获取回复
         //    await ledgerStore.getComments(19)
-        await ledgerStore.getReply(id, limit)
-
+        // await ledgerStore.getReply(id, limit)
+        await ledgerStore.getLatestReply(id)
     } else {//发送评论
         await pulishCommentAPI(
             comment_value.value,
@@ -78,7 +78,7 @@ const commentSubmit = async () => {
             atUserInfo.value
         )
         //发表评论后，获取新数据
-        await ledgerStore.getLedger(id)
+        await ledgerStore.getLatestComment(post_id)
         //获取ledger信息时，顺便获取评论信息
         /*commentsArray赋值要在ledgerStore.getLedger之后，
          因为ledgerStore.getLedger进行了异步操作，在外面赋值会导致commentsArray的值不是最准确的值*/
@@ -88,10 +88,10 @@ const commentSubmit = async () => {
     isFocued.value = 0
     atUserInfo.value = {}
     comment_value.value = null
-
 }
 const cancel = () => {
     isFocued.value = 0
+    comment_value.value = null
     atUserInfo.value = {}
 }
 /**
@@ -139,16 +139,15 @@ const publishLike = async (user_id, id, method) => {
 const cancelLike = async (user_id, id, method) => {
     await cancelLikeAPI(user_id, id, method)
     await userStore.getLikes(user_id)
-    // await ledgerStore.getComments(post_id,limit)
-    // await ledgerStore.getLedger(post_id)
+
 }
 //点赞
-const likeSubmit = async ({ id, method,comment_id }) => {
+const likeSubmit = async ({ id, method, comment_id }) => {
     //判断用户是否给这个点过赞，点过则发送取消请求，
     if (likeStatus(id, method, likes.value)) {
         console.log('取消点赞')
         await cancelLike(user_id, id, method)
-        ledgerStore.getLike(id,method,comment_id)
+        ledgerStore.getLike(id, method, comment_id)
     } else {
         console.log('点赞')
         //点赞
@@ -164,11 +163,11 @@ const likeSubmit = async ({ id, method,comment_id }) => {
 const card = ref(null)
 const loadMore = ref(null)
 const option = {
-        delay:500,
-        root: card.value,
-        rootMargin: '0px 0px 600px 0px',
-        threshold: 1,
-    }
+    delay: 500,
+    root: card.value,
+    rootMargin: '0px 0px 600px 0px',
+    threshold: 1,
+}
 onMounted(() => {
 
     //用户划到评论底部时，触发加载更多数据网络请求逻辑
@@ -176,21 +175,25 @@ onMounted(() => {
     // 监听评论列表是否进入可见区域参数
     const observer = new IntersectionObserver((entries) => {
         // if(ledgerStore.ledgerInfo.commentsInfo.length)
-        console.log('entries',entries,'option',option)
+        // console.log('entries', entries, 'option', option)
         entries.forEach((entry) => {
             if (entry.intersectionRatio === 1) {
                 console.log('进入可见区域')
-            // if()
-                ledgerStore.getComments(post_id,limit)
+                // if()
+                ledgerStore.getComments(post_id, limit)
             }
         })
-        
     }, option)
-observer.observe(loadMore.value,option)
+    imageArray.value = ledgerStore.ledgerInfo.article.post_image_url.split('&').map(item => {
+        return imageSrc(item)
+    })
+    observer.observe(loadMore.value, option)
 })
 // onBeforeUnmount(()=>{
 //     observer.disconnect()
 // })
+
+// console.log(imageArray)
 </script>
 
 <template>
@@ -198,8 +201,8 @@ observer.observe(loadMore.value,option)
         <div class="left" ref="left">
             <div class="img-box">
                 <el-carousel :interval="4000">
-                    <el-carousel-item height="" :key="item" v-for="item in ledgerStore.ledgerInfo.article.post_image_url.split('&')" >
-                        <el-image ref="imageRef" :src="imageSrc(item)" fit="scale-down" />
+                    <el-carousel-item height="" v-for="item in imageArray" :key="item">
+                        <el-image ref="imageRef" :src="item" fit="scale-down" />
                     </el-carousel-item>
                 </el-carousel>
             </div>
@@ -213,27 +216,27 @@ observer.observe(loadMore.value,option)
                 </div>
                 <el-button type="primary">关注</el-button>
             </div>
-            <div class="content-box" >
+            <div class="content-box" ref="contentBox">
                 <div class="main-content">
                     <div class="title">{{ ledgerStore.ledgerInfo.article.post_title }}</div>
                     <el-text>{{ ledgerStore.ledgerInfo.article.post_content }}</el-text>
-                    <div class="time">{{ ledgerStore.ledgerInfo.article.post_time }}</div>
+                    <div class="time">{{ formatDate(ledgerStore.ledgerInfo.article.post_time, day) }}</div>
                 </div>
                 <el-divider />
                 <div class="comment-box">
                     <div class="total">
                         <p>共<span>123</span>条评论</p>
-                    </div> 
+                    </div>
                     <!-- v-intersection-observer="loadMoreData()" -->
-                    <div class="comment-list" >
+                    <div class="comment-list">
                         <!-- 评论组件 -->
                         <div class="comment" v-for="items in ledgerStore.ledgerInfo.commentsInfo" :key="items.comment_id">
-                            <el-avatar :size="35" :src="imageSrc(items.user_pic)"></el-avatar>
+                            <el-avatar :size="40" :src="imageSrc(items.user_pic)"></el-avatar>
                             <div class="content">
                                 <div class="commment-auther">{{ items.nick_name }}</div>
                                 <div class="comment-text">{{ items.comment_content }}</div>
-                                <div class="time">{{ items.comment_time }}</div>
-                                <div class="comment-reply" >
+                                <div class="time">{{ formatDate(items.comment_time) }}</div>
+                                <div class="comment-reply">
                                     <el-button text @click="likeSubmit({ id: items.comment_id, method: 'comment' })">
                                         <i class="iconfont icon-like-true"
                                             :class="{ 'red': likeStatus(items.comment_id, 'comment', likes) }" />
@@ -242,6 +245,9 @@ observer.observe(loadMore.value,option)
                                     <el-button text @click="atUser(items)"> <i class="iconfont icon-comment_light" />
                                         <span>{{ items.reply_count }}</span>
                                     </el-button>
+                                    <el-button text :icon="Delete" @click="deleteSubmit(items,method)"
+                                        v-show="items.comment_user_id == user_id || ledgerStore.ledgerInfo.article.post_user_id == user_id"></el-button>
+
                                 </div>
                                 <!-- 回复数据组件 -->
                                 <!-- <div class="show-more">
@@ -250,7 +256,7 @@ observer.observe(loadMore.value,option)
                                 </div> -->
                                 <!-- v-show="items.replies && toggleShow(items.comment_id)" -->
                                 <!-- v-show="Show(items.comment_id)" -->
-                                <div class="reply-list" >
+                                <div class="reply-list">
                                     <div class="reply-item" v-for="item in items.replies" :key="item.reply_id">
                                         <el-avatar :size="25" :src="imageSrc(item.user_pic)"></el-avatar>
                                         <div class="content">
@@ -260,31 +266,33 @@ observer.observe(loadMore.value,option)
                                                     回复 {{ item.replied_user_nick_name }}：
                                                 </span> {{ item.reply_content }}
                                             </div>
-                                            <div class="time">{{ item.reply_time }}</div>
+                                            <div class="time">{{ formatDate(item.reply_time) }}</div>
                                             <div class="comment-reply">
-                                                <el-button text @click="likeSubmit({ id: item.reply_id, method: 'reply' ,comment_id: items.comment_id })">
+                                                <el-button text
+                                                    @click="likeSubmit({ id: item.reply_id, method: 'reply', comment_id: items.comment_id })">
                                                     <i class="iconfont icon-like-false"
                                                         :class="{ 'red': likeStatus(item.reply_id, 'reply', likes) }" /><span>{{ item.reply_likes_count }}</span></el-button>
                                                 <el-button @click="atUser(item)" text> <i
                                                         class="iconfont icon-comment_light" /></el-button>
+                                                <el-button text :icon="Delete"></el-button>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-                                <div class="show-more">
-                                    <el-button text @click="getReply(items.comment_id)" v-show="items.reply_count !== items.replies?.length"
-                                        style="color:#fec887;">加载更多</el-button>
+                                <div class="show-more" @click="getReply(items.comment_id)"
+                                    v-show="items.reply_count !== 0 && items.reply_count !== items.replies?.length">
+                                    <span>加载更多</span>
                                 </div>
                             </div>
                         </div>
-                        <div class="load-item" ref="loadMore" >
-                           <el-text> 加载中</el-text>
+                        <div class="load-item" ref="loadMore">
+                            <el-text> 加载中</el-text>
                         </div>
                     </div>
                 </div>
             </div>
-            <div :class="{ 'footer-blur': !isFocued, 'footer-focus': isFocued }" ref="footer" >
-                <div class="footer-top" v-show="atUserInfo !== 0 && isFocued">
+            <div :class="{ 'footer-blur': !isFocued, 'footer-focus': isFocued }" ref="footer">
+                <div class="footer-top" v-show="(atUserInfo !== 0) && isFocued">
                     <p>
                         <span>回复</span><span style="margin-left:5px">{{ atUserInfo.nick_name }}:</span>
                     </p>
@@ -292,17 +300,18 @@ observer.observe(loadMore.value,option)
                         style="color: gray;width:90%;">{{ atUserInfo.comment_content || atUserInfo.reply_content }}</el-text>
                 </div>
                 <input class="comment-input" v-model="comment_value" @click="atUser(isFocued ? atUserInfo : 0)"
-                    type="textarea" ref="inputRef" placeholder="说点啥吧" />
+                    type="textarea" ref="inputRef" placeholder="说点啥吧" @keydown.enter="commentSubmit" />
                 <div class="other">
-                    <el-button text @click="likeSubmit({ id: id, method: 'post'})"><i
-                            class="iconfont icon-like-true"
+                    <el-button text @click="likeSubmit({ id: id, method: 'post' })"><i class="iconfont icon-like-true"
                             :class="{ 'red': likeStatus(post_id, 'post', likes) }"></i><span>{{ ledgerStore.ledgerInfo.article.post_likes_count }}</span></el-button>
-                    <el-button text> <i class="iconfont icon-comment_light"></i><span>{{ ledgerStore.ledgerInfo.article.post_comments_count }}</span></el-button>
-                    <el-button text> <i class="iconfont icon-shoucang-true"></i><span>13k</span></el-button>
+                    <el-button text @click="atUser(isFocued ? atUserInfo : 0)"> <i
+                            class="iconfont icon-comment_light"></i><span>{{ ledgerStore.ledgerInfo.article.post_comments_count }}</span></el-button>
+                    <el-button text> <i
+                            class="iconfont icon-shoucang-true"></i><span>{{ ledgerStore.ledgerInfo.article.post_favorites_conut }}</span></el-button>
                     <el-button text> <i class="iconfont icon-zhuanfa" /></el-button>
                 </div>
                 <div class="comment-btn">
-                    <el-button type="primary" @click="commentSubmit"> 发送</el-button>
+                    <el-button type="primary" @click="commentSubmit" :disabled="comment_value?.trim() == ''">发送</el-button>
                     <el-button @click="cancel">返回</el-button>
                 </div>
             </div>
@@ -322,7 +331,7 @@ observer.observe(loadMore.value,option)
 }
 
 .border {
-    border-bottom: #96a1ac 1px solid;
+    border-bottom: #96a1ac36 1px solid;
 }
 
 .el-divider {
@@ -439,10 +448,10 @@ observer.observe(loadMore.value,option)
 
                 .comment {
                     display: flex;
-
+                    padding: 8px;
 
                     .content {
-                        padding-left: 10px;
+                        margin-left: 10px;
                         flex-direction: column;
                         flex: 1;
                         display: flex;
@@ -454,7 +463,7 @@ observer.observe(loadMore.value,option)
 
                         .comment-text {
                             flex: 1;
-                            margin: 5px 0 10px 0;
+                            margin: 8px 0;
                         }
 
 
@@ -465,24 +474,38 @@ observer.observe(loadMore.value,option)
                             font-size: 12px;
                             color: #999;
 
+                            .el-button {
+                                padding: 0;
+                            }
                         }
 
                         .reply-list {
                             flex: 2;
-                            
+                        }
+
+                        .show-more {
+                            span {
+                                font-size: 13px;
+                                color: gray;
+
+                                &:hover {
+                                    color: #fec887;
+                                }
+
+                                cursor: pointer;
+                            }
                         }
                     }
                 }
             }
+
             .reply-item {
                 box-sizing: border-box;
                 display: flex;
                 padding-top: 5px;
                 border-top: #99999904 1px solid;
 
-                .content {
-                    margin: 5px 0;
-                }
+                .content {}
 
             }
         }
@@ -585,4 +608,5 @@ observer.observe(loadMore.value,option)
 
 .right::-webkit-scrollbar {
     width: 10px;
-}</style>
+}
+</style>

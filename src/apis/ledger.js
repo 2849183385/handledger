@@ -45,7 +45,7 @@ export function pulishCommentAPI(content, post_id, user_id) {
     }
   })
 }
-//获取评论
+//获取评论列表
 export function getCommentAPI(id,limit,offset) {
   return request({
     url: '/ledger/getComments',
@@ -55,7 +55,15 @@ export function getCommentAPI(id,limit,offset) {
     }
   })
 }
-
+export function getLatestCommentAPI(post_id) {
+  return request({
+    url: '/ledger/getLatestComment',
+    method: 'get',
+    params: {
+      post_id
+    }
+  })
+}
 //获取回复
 export function getReplyAPI(id, limit, offset) {
   return request({
@@ -68,7 +76,15 @@ export function getReplyAPI(id, limit, offset) {
     }
   })
 }
-
+export function getLatestReplyAPI(comment_id) {
+  return request({
+    url: '/ledger/getLatestReply',
+    method: 'get',
+    params: {
+      comment_id
+    }
+  })
+}
 //发表回复
 export function pulishReplyAPI({ user_id, content, comment_id, reply_user_id }) {
   return request({

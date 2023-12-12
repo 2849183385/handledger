@@ -35,24 +35,24 @@ export function convertToTimestamp(dateString) {
  * @param {string} timeformat 时间格式
  * @returns {string} 格式化后的时间
  */
-export function formatDates(date, timeformat) {
+export function formatDate(date, timeformat) {
     const dataString = new Date(date);
-    const YYYY = dataString.getFullYear();  // 年
-    const MM = (dataString.getMonth() + 1).toString().padStart(2, '0');  // 月
-    const dd = (dataString.getDate()).toString().padStart(2, '0');  // 日
-    const hh = (dataString.getHours()).toString().padStart(2, '0');
-    const mm = (dataString.getMinutes()).toString().padStart(2, '0');
-    const ss = (dataString.getSeconds()).toString().padStart(2, '0');
+    const year = dataString.getFullYear();  // 年
+    const month = (dataString.getMonth() + 1).toString().padStart(2, '0');  // 月
+    const day = (dataString.getDate()).toString().padStart(2, '0');  // 日
+    const hours = (dataString.getHours()).toString().padStart(2, '0');
+    const minutes = (dataString.getMinutes()).toString().padStart(2, '0');
+    const seconds = (dataString.getSeconds()).toString().padStart(2, '0');
     switch (timeformat) {
         case 'day':
-            return `${YYYY}-${MM}-${dd}`
+            return `${year}-${month}-${day}`
         case 'month':
-            return `${YYYY}-${MM}`
+            return `${year}-${month}`
         case 'year':
-            return `${YYYY}`
+            return `${year}`
         case 'time':
-            return `${hh}:${mm}:${ss}`
+            return `${hours}:${minutes}:${seconds}`
         default:
-            return `${YYYY}-${mm}-${dd}`
+            return `${year}-${month}-${day}`
     }
 }

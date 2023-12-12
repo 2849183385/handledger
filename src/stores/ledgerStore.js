@@ -1,6 +1,6 @@
 import { defineStore } from "pinia";
 import { ref } from 'vue'
-import { getLedgerAPI, getLedgerListAPI, getCommentAPI, getReplyAPI, getLikeAPI } from '@/apis/ledger'
+import { getLedgerAPI, getLedgerListAPI, getCommentAPI, getReplyAPI, getLikeAPI, getLatestCommentAPI, getLatestReplyAPI } from '@/apis/ledger'
 export const useLedgerStore = defineStore("ledger", () => {
     const ledgerInfo = ref([])
     const ledgerList = ref([])
@@ -26,12 +26,29 @@ export const useLedgerStore = defineStore("ledger", () => {
      */
     const getComments = async (id, limit) => {
         let offset = null
-        // console.log(offset)
+        console.log(offset)
         try {
+            console.log(id, limit, offset)
+            console.log(ledgerInfo.value.commentsInfo)
             offset = ledgerInfo.value.commentsInfo ? ledgerInfo.value.commentsInfo.length : 0
+            console.log(id, limit, offset)
             const res = await getCommentAPI(id, limit, offset)
             //评论数据存储到本地
             ledgerInfo.value.commentsInfo = ledgerInfo.value.commentsInfo ? (ledgerInfo.value.commentsInfo.concat(res.data.data)) : res.data.data
+        } catch (error) {
+            console.log(error);
+        }
+    }
+    /*获取最新评论，并显示到顶部
+     * @param {*} post_id 文章id
+     */
+    const getLatestComment = async (post_id) => {
+        try {
+            const res = await getLatestCommentAPI(post_id)
+            console.log(res.data.data)
+            //将获取的最新评论数据插入到本地评论数据顶部
+           
+            ledgerInfo.value.commentsInfo.unshift(...res.data.data)
         } catch (error) {
             console.log(error);
         }
@@ -64,10 +81,42 @@ export const useLedgerStore = defineStore("ledger", () => {
                 ledgerInfo.value.commentsInfo[i].replies = ledgerInfo.value.commentsInfo[i].replies ? (ledgerInfo.value.commentsInfo[i].replies.concat(res.data.data)) : res.data.data
                 console.log(res.data.data[0].reply_count)
                 //回复数量也进行更新
-                ledgerInfo.value.commentsInfo[i].reply_count = res.data.data[0].reply_count
+                // ledgerInfo.value.commentsInfo[i].reply_count = res.data.data[0].reply_count
                 break
             }
 
+        }
+    }
+    /*获取最新评论，并显示到顶部
+     * @param {*} post_id 文章id
+     */
+    const getLatestReply = async (comment_id) => {
+        try {
+            const res = await getLatestReplyAPI(comment_id)
+           
+            for (let i = 0; i < ledgerInfo.value.commentsInfo.length; i++) {
+            //找到被回复的评论
+                if (ledgerInfo.value.commentsInfo[i].comment_id === comment_id) {
+                    //赋值
+                    console.log(res.data.data);
+                    console.log(ledgerInfo.value.commentsInfo[i].replies)
+                    if (ledgerInfo.value.commentsInfo[i].replies) {
+                       ledgerInfo.value.commentsInfo[i].replies.unshift(...res.data.data) 
+                    } else {
+                        ledgerInfo.value.commentsInfo[i].replies = res.data.data
+                    }
+                     
+                    console.log(ledgerInfo.value.commentsInfo[i].replies)
+
+                    //回复数量也进行更新
+                    ledgerInfo.value.commentsInfo[i].reply_count = res.data.data[0].reply_count
+                    break
+                }
+            }
+            //将获取的最新评论数据插入到本地评论数据顶部
+        } catch (error) {
+
+            console.log(error);
         }
     }
     const getLike = async (id, method,comment_id) => {
@@ -127,8 +176,10 @@ export const useLedgerStore = defineStore("ledger", () => {
         ledgerList,
         getLedger,
         getComments,
+        getLatestComment,
         getLedgerList,
         getReply,
+        getLatestReply,
         getLike,
         setLedger,
         cleanLedger
