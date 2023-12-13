@@ -30,9 +30,9 @@ export const useUserStore = defineStore("user", () => {
         }
         
     }
-    const getFavorites=async(id)=>{
+    const getFavorites=async(user_id)=>{
         try{
-            const res=await getFavoritesAPI(id)
+            const res=await getFavoritesAPI(user_id)
             userInfo.value.favorites=res.data.data
         }catch(e){
             console.log(e)
