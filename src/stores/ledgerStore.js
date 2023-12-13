@@ -1,6 +1,7 @@
 import { defineStore } from "pinia";
 import { ref } from 'vue'
-import { getLedgerAPI, getLedgerListAPI, getCommentAPI, getReplyAPI, getLikeAPI, getLatestCommentAPI, getLatestReplyAPI } from '@/apis/ledger'
+import { ElMessage } from 'element-plus';
+import { getLedgerAPI, getLedgerListAPI, getCommentAPI, getReplyAPI, getLikeAPI, getLatestCommentAPI, getLatestReplyAPI, deleteCommentAPI } from '@/apis/ledger'
 export const useLedgerStore = defineStore("ledger", () => {
     const ledgerInfo = ref([])
     const ledgerList = ref([])
@@ -165,6 +166,56 @@ export const useLedgerStore = defineStore("ledger", () => {
         }
         console.log(res.data.data)
     }
+    /*删除评论和回复
+     * @param {*} user_id 用户id
+     * @param {*} comment_id 评论id
+     * @param {*} reply_id 回复id
+     * @param {*} method 评论还是回复
+     */
+    const deleteSubmit = async ({comment_id,method,reply_id}) => {
+        switch (method) {
+            case 'comment':
+                //找到要被删除的评论
+                for (let i = 0; i < ledgerInfo.value.commentsInfo.length; i++) {
+                    if (ledgerInfo.value.commentsInfo[i].comment_id === comment_id) {
+                        console.log(comment_id);
+                        console.log(ledgerInfo.value.commentsInfo);
+                        ledgerInfo.value.commentsInfo.splice(i, 1) 
+                        console.log(ledgerInfo.value.commentsInfo);
+                        const res = await deleteCommentAPI(comment_id, method)
+                        //删除后。评论总数减一
+                        ledgerInfo.value.article.post_comment_count = ledgerInfo.value.article.post_comment_count-1
+                        console.log(res);
+                        ElMessage({
+                            type: 'success',
+                            message: res.data.message
+                        } )
+                        return
+                    }
+                }
+                break;
+            case 'reply':
+                console.log(method)
+                //找到要被删除的回复
+                for (let i = 0; i < ledgerInfo.value.commentsInfo.length; i++) {
+                    if (ledgerInfo.value.commentsInfo[i].comment_id === comment_id) {
+                        for (let j = 0; j < ledgerInfo.value.commentsInfo[i].replies.length; j++) {
+                            if (ledgerInfo.value.commentsInfo[i].replies[j].reply_id === reply_id) {
+                                ledgerInfo.value.commentsInfo[i].replies.splice(j, 1)
+                                await deleteCommentAPI(comment_id, method, reply_id)
+                                //删除后。评论总数减一
+                                ledgerInfo.value.article.post_comment_count = ledgerInfo.value.article.post_comment_count - 1
+                                
+                                return
+                            }
+                        }
+                    }
+                }
+                break;
+            default:
+                break;
+        }
+    }
     const setLedger = (data) => {
         ledgerInfo.value = data
     }
@@ -181,6 +232,7 @@ export const useLedgerStore = defineStore("ledger", () => {
         getReply,
         getLatestReply,
         getLike,
+        deleteSubmit,
         setLedger,
         cleanLedger
     }

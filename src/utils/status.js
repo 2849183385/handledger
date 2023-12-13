@@ -17,3 +17,7 @@ export const likeStatus = (id, kind, obj) => {
             return false;
     }
 }
+
+export const favoriteStatus = (post_id, obj) => {
+    return obj.includes(post_id);
+}

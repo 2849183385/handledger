@@ -64,6 +64,21 @@ export function getLatestCommentAPI(post_id) {
     }
   })
 }
+
+//发表回复
+export function pulishReplyAPI({ user_id, content,post_id, comment_id, reply_user_id }) {
+  return request({
+    url: '/ledger/publishReply',
+    method: 'post',
+    data: {
+      user_id,
+      content,
+      post_id,
+      comment_id,
+      reply_user_id
+    }
+  })
+}
 //获取回复
 export function getReplyAPI(id, limit, offset) {
   return request({
@@ -85,19 +100,7 @@ export function getLatestReplyAPI(comment_id) {
     }
   })
 }
-//发表回复
-export function pulishReplyAPI({ user_id, content, comment_id, reply_user_id }) {
-  return request({
-    url: '/ledger/publishReply',
-    method: 'post',
-    data: {
-      user_id,
-      content,
-      comment_id,
-      reply_user_id
-    }
-  })
-}
+
 
 //点赞
 export function pulishLikeAPI(user_id, id, method) {
@@ -131,3 +134,47 @@ export function getLikeAPI(id, method) {
     }
   })
 }
+
+//删除评论
+export function deleteCommentAPI(comment_id,method,reply_id) {
+  return request({
+    url: '/ledger/deleteComment',
+    method: 'post',
+    data: {
+     comment_id, method, reply_id
+    }
+  })
+}
+
+//收藏
+export function publishFavoriteAPI(user_id, post_id) {
+  return request({
+    url: '/ledger/publishFavorite',
+    method: 'post',
+    data: {
+      user_id, post_id, 
+    }
+  })
+}
+
+//取消收藏
+export function cancelFavoriteAPI(user_id, post_id) {
+  return request({
+    url: '/ledger/cancelFavorite',
+    method: 'post',
+    data: {
+      user_id, post_id, 
+    }
+  })
+}
+
+//获取收藏
+// export function getFavoriteAPI(post_id) {
+//   return request({
+//     url: '/ledger/getFavorite',
+//     method: 'get',
+//     params: {
+//       post_id
+//     }
+//   })
+// }

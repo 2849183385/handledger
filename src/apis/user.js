@@ -61,3 +61,14 @@ export const getLikesAPI = (user_id) => {
         }
     })
 }
+
+//获取用户收藏数据
+export const getFavoritesAPI = (user_id) => {
+    return request({
+        url: '/user/getFavorites',
+        method: 'get',
+        params: {
+            user_id
+        }
+    })
+}

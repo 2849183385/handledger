@@ -5,15 +5,14 @@ import { useLedgerStore } from '@/stores/ledgerStore'
 import { useUserStore } from '@/stores/userStore'
 // import { formatDates } from '@/utils/format'
 import { imageSrc } from '@/utils/imageSrc'
-import { likeStatus } from '@/utils/likeStatus'
+import { likeStatus , favoriteStatus } from '@/utils/status'
 import { formatDate } from '@/utils/format'
-import { pulishCommentAPI, pulishReplyAPI, pulishLikeAPI, cancelLikeAPI, } from '@/apis/ledger'
+import { pulishCommentAPI, pulishReplyAPI, pulishLikeAPI, cancelLikeAPI, publishFavoriteAPI, cancelFavoriteAPI } from '@/apis/ledger'
 import { Delete } from '@element-plus/icons-vue';
-
 const ledgerStore = useLedgerStore()
 const userStore = useUserStore()
 const { userInfo } = userStore
-const { likes } = toRefs(userInfo)
+const { likes, favorites } = toRefs(userInfo)
 const user_id = userInfo.user_id
 // console.log(likes.value.commentid)
 const limit = 5
@@ -37,15 +36,14 @@ ledgerStore.getLedger(id)
 // })
 // postAvatarUrl.value = ledgerStore.ledgerInfo.userInfo.user_pic
 // }
+const isFocued = ref(false)
 const inputRef = ref(null)
 const contentBox = ref(null)
 const { y } = useScroll(contentBox)
 //@功能样式存储当前被@对象信息
 const atUserInfo = ref({})
-const isFocued = ref(0)
-const atUser = (obj) => {
-    atUserInfo.value = obj
-    isFocued.value = 1
+const atUser = (item) => {
+    atUserInfo.value = item ? item : {}
     inputRef.value.focus()
 }
 //评论框内容
@@ -53,14 +51,16 @@ const comment_value = ref('')
 //评论
 const commentSubmit = async () => {
     // 发送回复
-    if (atUserInfo.value != 0) {
+    if (Object.keys(atUserInfo.value).length > 0) {
         //提取·需要发送的评论ID
-        const id = atUserInfo.value.reply_comment_id ? atUserInfo.value.reply_comment_id : atUserInfo.value.comment_id
+        const comment_id = atUserInfo.value.comment_id ? atUserInfo.value.comment_id : atUserInfo.value.reply_comment_id
+        // const id = atUserInfo.value.reply_comment_id ? atUserInfo.value.reply_comment_id : atUserInfo.value.comment_id
         await pulishReplyAPI({
             user_id,
             content: comment_value.value.trim(),
+            post_id,
             //判断是否有回复评论id，还是回复其他回复的评论id
-            comment_id: id,
+            comment_id,
             reply_user_id: atUserInfo.value.reply_user_id
         })
         //发表评论后，获取新数据
@@ -69,29 +69,34 @@ const commentSubmit = async () => {
         //获取回复
         //    await ledgerStore.getComments(19)
         // await ledgerStore.getReply(id, limit)
-        await ledgerStore.getLatestReply(id)
+        await ledgerStore.getLatestReply(comment_id)
+        //评论数量加一
+        ledgerStore.ledgerInfo.article.post_comment_count = ledgerStore.ledgerInfo.article.post_comment_count + 1
     } else {//发送评论
         await pulishCommentAPI(
             comment_value.value,
-            id,
-            user_id,
-            atUserInfo.value
+            post_id,
+            user_id
         )
         //发表评论后，获取新数据
         await ledgerStore.getLatestComment(post_id)
+        //发送评论后，本地数据评论数加一
+        ledgerStore.ledgerInfo.article.post_comment_count = ledgerStore.ledgerInfo.article.post_comment_count + 1
+
         //获取ledger信息时，顺便获取评论信息
         /*commentsArray赋值要在ledgerStore.getLedger之后，
          因为ledgerStore.getLedger进行了异步操作，在外面赋值会导致commentsArray的值不是最准确的值*/
         // commentsArray.value = ledgerStore.ledgerInfo.commentsInfo
     }
     //评论被发送后，输出框清零，样式清零
-    isFocued.value = 0
+    inputRef.value = null
     atUserInfo.value = {}
     comment_value.value = null
 }
 const cancel = () => {
-    isFocued.value = 0
-    comment_value.value = null
+    inputRef.value.blur()
+    isFocued.value = false
+    comment_value.value = ''
     atUserInfo.value = {}
 }
 /**
@@ -157,6 +162,37 @@ const likeSubmit = async ({ id, method, comment_id }) => {
 
     }
 }
+
+//删除
+const deleteDialogVisible = ref(false)
+const deleteInfo = ref({})
+const deleteConfirm = async (comment_id, method, reply_id) => {
+    deleteDialogVisible.value = true
+    deleteInfo.value = { user_id, comment_id, method, reply_id }
+    // ledgerStore.deleteSubmit(user_id, comment_id, method, reply_id)
+}
+const deleteSubmit = () => {
+    console.log({ ...deleteInfo.value });
+    ledgerStore.deleteSubmit({ ...deleteInfo.value })
+    deleteDialogVisible.value = false
+}
+
+const favoriteSubmit = async () => {
+    //如果是收藏状态则
+    console.log();
+    if (!favoriteStatus(post_id, favorites.value)) {
+        const res = await publishFavoriteAPI(user_id, post_id)
+        console.log(res.data.data);
+        userStore.getFavorites(user_id)
+        ledgerStore.ledgerInfo.article.post_favorite_count = res.data.data.favorites_count
+    } else {
+        const res = await cancelFavoriteAPI(user_id, post_id)
+        userStore.getFavorites(user_id)
+        console.log(res.data);
+        ledgerStore.ledgerInfo.article.post_favorite_count = res.data.data.favorites_count
+    }
+}
+
 // console.log(likes.value)
 // console.log(likeStatus(19, 'post', likes.value))
 //要获取一个dom，首先需要声明一个容器 ref(null) 然后在模板中绑定
@@ -169,7 +205,6 @@ const option = {
     threshold: 1,
 }
 onMounted(() => {
-
     //用户划到评论底部时，触发加载更多数据网络请求逻辑
     //在评论组件最底部，添加一个加载更多动画，如果加载更多动画进入可视区，触发回调函数
     // 监听评论列表是否进入可见区域参数
@@ -220,7 +255,7 @@ onMounted(() => {
                 <div class="main-content">
                     <div class="title">{{ ledgerStore.ledgerInfo.article.post_title }}</div>
                     <el-text>{{ ledgerStore.ledgerInfo.article.post_content }}</el-text>
-                    <div class="time">{{ formatDate(ledgerStore.ledgerInfo.article.post_time, day) }}</div>
+                    <div class="time">{{ formatDate(ledgerStore.ledgerInfo.article.post_time) }}</div>
                 </div>
                 <el-divider />
                 <div class="comment-box">
@@ -245,9 +280,8 @@ onMounted(() => {
                                     <el-button text @click="atUser(items)"> <i class="iconfont icon-comment_light" />
                                         <span>{{ items.reply_count }}</span>
                                     </el-button>
-                                    <el-button text :icon="Delete" @click="deleteSubmit(items,method)"
+                                    <el-button text :icon="Delete" @click="deleteConfirm(items.comment_id, 'comment')"
                                         v-show="items.comment_user_id == user_id || ledgerStore.ledgerInfo.article.post_user_id == user_id"></el-button>
-
                                 </div>
                                 <!-- 回复数据组件 -->
                                 <!-- <div class="show-more">
@@ -274,7 +308,9 @@ onMounted(() => {
                                                         :class="{ 'red': likeStatus(item.reply_id, 'reply', likes) }" /><span>{{ item.reply_likes_count }}</span></el-button>
                                                 <el-button @click="atUser(item)" text> <i
                                                         class="iconfont icon-comment_light" /></el-button>
-                                                <el-button text :icon="Delete"></el-button>
+                                                <el-button class="delete-btn" text :icon="Delete"
+                                                    v-show="item.reply_user_id == user_id || ledgerStore.ledgerInfo.article.post_user_id == user_id"
+                                                    @click="deleteConfirm(items.comment_id, 'reply', item.reply_id)"></el-button>
                                             </div>
                                         </div>
                                     </div>
@@ -292,22 +328,22 @@ onMounted(() => {
                 </div>
             </div>
             <div :class="{ 'footer-blur': !isFocued, 'footer-focus': isFocued }" ref="footer">
-                <div class="footer-top" v-show="(atUserInfo !== 0) && isFocued">
+                <div class="footer-top" v-show="(Object.keys(atUserInfo).length > 0) && isFocued">
                     <p>
-                        <span>回复</span><span style="margin-left:5px">{{ atUserInfo.nick_name }}:</span>
+                        <span>回复</span><span style="margin-left:5px">{{ atUserInfo?.nick_name }}:</span>
                     </p>
                     <el-text :truncated="true"
-                        style="color: gray;width:90%;">{{ atUserInfo.comment_content || atUserInfo.reply_content }}</el-text>
+                        style="color: gray;width:90%;">{{ atUserInfo?.comment_content || atUserInfo?.reply_content }}</el-text>
                 </div>
-                <input class="comment-input" v-model="comment_value" @click="atUser(isFocued ? atUserInfo : 0)"
-                    type="textarea" ref="inputRef" placeholder="说点啥吧" @keydown.enter="commentSubmit" />
+                <input class="comment-input" v-model="comment_value" @focus="isFocued = true" type="textarea" ref="inputRef"
+                    placeholder="说点啥吧" @keydown.enter="commentSubmit" />
                 <div class="other">
                     <el-button text @click="likeSubmit({ id: id, method: 'post' })"><i class="iconfont icon-like-true"
                             :class="{ 'red': likeStatus(post_id, 'post', likes) }"></i><span>{{ ledgerStore.ledgerInfo.article.post_likes_count }}</span></el-button>
-                    <el-button text @click="atUser(isFocued ? atUserInfo : 0)"> <i
-                            class="iconfont icon-comment_light"></i><span>{{ ledgerStore.ledgerInfo.article.post_comments_count }}</span></el-button>
-                    <el-button text> <i
-                            class="iconfont icon-shoucang-true"></i><span>{{ ledgerStore.ledgerInfo.article.post_favorites_conut }}</span></el-button>
+                    <el-button text @click="atUser()"> <i
+                            class="iconfont icon-comment_light"></i><span>{{ ledgerStore.ledgerInfo.article.post_comment_count }}</span></el-button>
+                    <el-button text @click="favoriteSubmit()" :style="{'color': favoriteStatus(post_id, favorites)? '#fec887' : ''}"> <i
+                            class="iconfont icon-shoucang-true"></i><span>{{ ledgerStore.ledgerInfo.article.post_favorite_count }}</span></el-button>
                     <el-button text> <i class="iconfont icon-zhuanfa" /></el-button>
                 </div>
                 <div class="comment-btn">
@@ -316,7 +352,21 @@ onMounted(() => {
                 </div>
             </div>
         </div>
+        <!-- 删除对话框 -->
+
     </div>
+    <el-dialog v-model="deleteDialogVisible" width="230px" :align-center="true" :center="true"
+        style=" border-radius: 20px;">
+        <span>你想要删除这条评论吗？</span>
+        <template #footer>
+            <span class="dialog-footer">
+                <el-button @click="deleteDialogVisible = false">返回</el-button>
+                <el-button type="primary" @click="deleteSubmit">
+                    确认
+                </el-button>
+            </span>
+        </template>
+    </el-dialog>
 </template>
 
 <style lang="scss" scoped>
@@ -477,6 +527,12 @@ onMounted(() => {
                             .el-button {
                                 padding: 0;
                             }
+
+                            .delete-btn {
+                                &:hover {
+                                    color: red;
+                                }
+                            }
                         }
 
                         .reply-list {
@@ -610,3 +666,4 @@ onMounted(() => {
     width: 10px;
 }
 </style>
+@/utils/status
