@@ -9,7 +9,8 @@ import { storeToRefs } from 'pinia';
 const Router = useRouter()
 const userStore = useUserStore()
 const ledgerStore = useLedgerStore()
-const {userInfo} =storeToRefs(userStore)
+const { userInfo } = storeToRefs(userStore)
+const loginoutDialogVisible=ref(false)
 const confirmEvent = () => {
     userStore.removeToken()
     Router.push('/login')
@@ -20,6 +21,7 @@ const confirmEvent = () => {
     //退出登录，清除数据
     userStore.cleanUserInfo()
     ledgerStore.cleanLedger()
+    loginoutDialogVisible.value=false
 }
 //监听图片更新后重新赋值
 watch(userInfo, () => {
@@ -45,16 +47,23 @@ const imgUrl = ref(imageSrc(userInfo.value.user_pic))
             <el-dropdown-menu>
                 <el-dropdown-item @click="Router.push('/user')">个人空间</el-dropdown-item>
                 <el-dropdown-item>Action 2</el-dropdown-item>
-                <el-dropdown-item>
-                    <el-popconfirm confirm-button-text="退出" cancel-button-text="返回" title="确认退出？" @confirm="confirmEvent">
-                        <template #reference>
+                <el-dropdown-item @click="loginoutDialogVisible=true">
                             退出登录
-                        </template>
-                    </el-popconfirm>
                 </el-dropdown-item>
             </el-dropdown-menu>
         </template>
     </el-dropdown>
+     <el-dialog v-model="loginoutDialogVisible" width="230px" :align-center="true" :center="true" style="border-radius: 20px;">
+            <span>你想要退出登录？</span>
+            <template #footer>
+                <span class="dialog-footer">
+                    <el-button @click="loginoutDialogVisible = false">返回</el-button>
+                    <el-button type="primary" @click="confirmEvent">
+                        确认
+                    </el-button>
+                </span>
+            </template>
+        </el-dialog>
 </template>
 
 <style lang="scss" scoped>

@@ -1,11 +1,14 @@
 import request from '@/utils/request'
 
-//获取文章列表
-export function getLedgerListAPI() {
+//获取全部文章信息列表
+export function getLedgerListAPI(limit, offset) {
   return request({
-    url: '/ledger/list',
+    url: '/ledger/getLedgerList',
     method: 'get',
-
+    params: {
+      limit,
+      offset
+    }
   })
 }
 
@@ -80,12 +83,12 @@ export function pulishReplyAPI({ user_id, content,post_id, comment_id, reply_use
   })
 }
 //获取回复
-export function getReplyAPI(id, limit, offset) {
+export function getReplyAPI(comment_id, limit, offset) {
   return request({
     url: '/ledger/getReply',
     method: 'get',
     params: {
-      id,
+      comment_id,
       limit,
       offset
     }
@@ -168,13 +171,13 @@ export function cancelFavoriteAPI(user_id, post_id) {
   })
 }
 
-//获取收藏
-// export function getFavoriteAPI(post_id) {
-//   return request({
-//     url: '/ledger/getFavorite',
-//     method: 'get',
-//     params: {
-//       post_id
-//     }
-//   })
-// }
+//获取收藏列表信息
+export function getFavoritesAPI(user_id) {
+  return request({
+    url: '/ledger/getFavorites',
+    method: 'get',
+    params: {
+      user_id
+    }
+  })
+}

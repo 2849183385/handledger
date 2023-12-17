@@ -75,7 +75,7 @@ const { userInfo } = storeToRefs(userStore)
 
         <div class="info-item">
           <label>籍贯：</label>
-          <span>{{ userInfo.user_region[0] }} - {{ userInfo.user_region[1] }}</span>
+          <span>{{ userInfo?.user_region[0] }} - {{ userInfo?.user_region[1] }}</span>
         </div>
 
         <el-input  :rows="5" resize='none' type="textarea" :placeholder='userInfo.user_motto' style="margin-top: 25px;" :disabled="true"
@@ -91,8 +91,6 @@ const { userInfo } = storeToRefs(userStore)
 <style lang='scss' scoped>
 .user-info {
   width: 320px;
-  margin: 10px 0 0 15px;
-  float: right;
   background-color: #fff;
 
   .header {

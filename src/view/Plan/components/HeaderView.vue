@@ -60,40 +60,29 @@ const deadlineCount = computed({
             </ul>
           </div>
         </div>
-        <el-calendar />
+        
 </template>
 
 <style lang='scss' scoped>
  //日历样式
- .el-calendar {
-    border-radius: 5px;
-    margin-left: 15px;
-    margin-right: 15px;
-    width: 300px;
-    position: absolute;
-    left: 0;
-    top: 160px;
-    --el-calendar-cell-width: 35px;
-  }
 
   .all-task {
+    flex: 2;
     margin-left: 15px;
     height: 120px;
+    width: 325px;
     display: flex;
     flex-direction: column;
-    margin-right: 30px;
 
     .all-task_item {
       display: flex;
       flex-direction: column;
-      align-items: center;
-      justify-content: center;
+     
 
       ul {
         display: flex;
         flex-direction: row;
-        align-items: center;
-        justify-content: center;
+      
 
         li {
           overflow: hidden;

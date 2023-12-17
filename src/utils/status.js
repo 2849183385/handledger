@@ -8,16 +8,16 @@
 export const likeStatus = (id, kind, obj) => {
     switch (kind) {
         case 'post':
-            return obj.postid.includes(id);
+            return obj.postId.includes(parseInt(id));
         case 'comment':
-            return obj.commentid.includes(id);
+            return obj.commentId.includes(parseInt(id));
         case 'reply':
-            return obj.replyid.includes(id);
+            return obj.replyId.includes(parseInt(id));
         default:
             return false;
     }
 }
 
 export const favoriteStatus = (post_id, obj) => {
-    return obj.includes(post_id);
+    return obj.includes(parseInt(post_id));
 }

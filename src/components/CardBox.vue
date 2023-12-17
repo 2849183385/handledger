@@ -8,6 +8,22 @@ const imgUrl = ref(null)
 const userStore = useUserStore()
 const { userInfo } = storeToRefs(userStore)
 imgUrl.value = imageSrc(userInfo.value.user_pic)
+const props=defineProps({
+    item: {
+        type: Object,
+        required: true
+    }
+})
+console.log(props.item);
+const image = imageSrc(props.item.post_image_url?.split('&')[0])
+// document.querySelector('.background').style.backgroundImage = ` background-image: linear-gradient(rgba(255, 255, 255, 0.4) 0%,
+//                     rgba(255, 255, 255, 0.7) 20%,
+//                     rgba(255, 255, 255, 1) 60%,
+//                     rgba(255, 255, 255, 1) 100%),
+//                     url(${image})`;
+const post_id = props.item.post_id
+console.log(image);
+console.log(post_id);
 </script>
 
 <template>
@@ -15,7 +31,7 @@ imgUrl.value = imageSrc(userInfo.value.user_pic)
         <div class="card">
             <div class="show-wrapper">
                 <div class="pic-wrapper">
-                    <img src="src/assets/images/bg.png" style="height:300px;">
+                    <img :src="image" style="display: flex;width: 100%;height: 100%;">
                 </div>
                 <div class="show-info">
                     <h4 class="title">
@@ -54,10 +70,12 @@ imgUrl.value = imageSrc(userInfo.value.user_pic)
                         impedit incidunt ipsam iure, iusto maxime natus nemo quae quasi quidem quo rem repellat sapiente
                         similique sunt tempora ullam ut voluptatem.</el-text>
                 </div>
-                <el-button @click="router.push('/detail')" class="btn">前往</el-button>
+                <el-button @click="router.push(`/detail/${post_id}`)" class="btn">前往</el-button>
             </div>
 
-            <div class="background"></div>
+            <div class="background" >
+                <el-image :src="image" fit="cover" style="border-radius:  20px,20px 0 0;"/>
+            </div>
         </div>
 
     </div>
@@ -158,6 +176,7 @@ imgUrl.value = imageSrc(userInfo.value.user_pic)
         }
 
         .background {
+            border-radius: 20px;
             background-color: #fff;
             position: absolute;
             top: 0;
@@ -174,8 +193,7 @@ imgUrl.value = imageSrc(userInfo.value.user_pic)
             background-image: linear-gradient(rgba(255, 255, 255, 0.4) 0%,
                     rgba(255, 255, 255, 0.7) 20%,
                     rgba(255, 255, 255, 1) 60%,
-                    rgba(255, 255, 255, 1) 100%),
-                url(src/assets/images/bg.png);
+                    rgba(255, 255, 255, 1) 100%);
             background-size: cover;
             background-repeat: no-repeat;
             background-position: top;

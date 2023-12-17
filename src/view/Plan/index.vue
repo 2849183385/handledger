@@ -6,7 +6,7 @@ import { useTaskStore } from '@/stores/taskStore';
 import { addNewTaskAPI, deleteTaskAPI, updateTaskAPI } from '@/apis/task'
 import { ElMessage } from 'element-plus';
 import TaskDetail from './components/TaskDetail.vue';
-import LeftView from './components/LeftView.vue'
+import HeaderView from './components/HeaderView.vue'
 import { Operation, Check, Delete } from '@element-plus/icons-vue';
 const loader = ref(true)
 const { userInfo: { user_id } } = useUserStore()
@@ -18,7 +18,7 @@ const taskSInfoExist = () => {
     return
   } else {
     taskStore.getTasksById(user_id).then(() => {
-      loader.value=false
+      loader.value = false
     })
   }
 }
@@ -64,7 +64,7 @@ const taskArray = computed({
 /**当前页码*/
 const currentPage = ref(1)
 /**每页显示的任务数量*/
-const pageSize = ref(17)
+const pageSize = ref(20)
 const handlePageChange = (page) => {
   currentPage.value = page // 更新当前页码
   const startIndex = (page - 1) * pageSize.value // 计算当前页的起始索引
@@ -271,7 +271,7 @@ function addTask() {
     start_date: taskForm.value.estimatedTime[0],
     end_date: taskForm.value.estimatedTime[1],
     creator_id: user_id,
-  }).then(()=> {
+  }).then(() => {
     taskStore.getTasksById(user_id)
     taskForm.value = {
       task_title: '',
@@ -281,7 +281,7 @@ function addTask() {
     }
     ElMessage.success('添加成功');
   })
-  
+
 }
 const editorFormRef = ref(null)
 const taskDetail = (obj) => {
@@ -363,20 +363,24 @@ const handleEditTask = async () => {
     creator_id: user_id,
   }).then(() => {
     taskStore.getTasksById(user_id)
-  editTaskVisible.value = false
-  ElMessage.success('修改成功');
+    editTaskVisible.value = false
+    ElMessage.success('修改成功');
   }).catch((error) => {
     console.error('Error:', error); // 如果异步函数执行失败，输出错误信息
   });
-  
+
 }
 </script> 
 
 <template>
   <div class="loader" v-if="loader.value"></div>
   <div class="container" v-else>
-
-    <LeftView></LeftView>
+    <div class="left">
+      <HeaderView></HeaderView>
+     
+      <TaskDetail :selectTaskId="selectTaskId" @task-detail="taskDetail"></TaskDetail>
+ <el-calendar />
+    </div>
 
     <!-- 任务内容盒子 -->
     <div class="content">
@@ -458,141 +462,146 @@ const handleEditTask = async () => {
         </div>
       </div>
 
-      <div class="alter-task-staus">
 
-        <!-- 添加任务弹出层-->
-        <div class="add-task-dialog">
-          <el-dialog :modal="false" :close-on-click-modal="false" v-model="addDialogVisible" title="添加你的任务" width="500px"
-            center :append-to-body="true" :lock-scroll="false" style="border-radius: 5px;">
-            <!-- 添加任务表单 -->
-            <el-form :hide-required-asterisk="true" :model="taskForm" :rules="rules" ref="taskFormRef" label-width="80px"
-              style="max-width: 450px; margin: 0 auto;">
-              <el-form-item label="任务名称" prop="task_title">
-                <el-input v-model="taskForm.task_title" prefix-icon="el-icon-edit"></el-input>
-              </el-form-item>
-
-              <el-form-item label="预估时间" prop="estimatedTime">
-                <el-date-picker v-model="taskForm.estimatedTime" type="datetimerange" start-placeholder="开始时间"
-                  end-placeholder="结束时间" value-format="x" />
-              </el-form-item>
-              <el-form-item prop="priority">
-                <el-radio-group v-model="taskForm.priority" label="请选择优先级">
-                  <el-radio :label="1"></el-radio>
-                  <el-radio :label="2"></el-radio>
-                  <el-radio :label="3"></el-radio>
-                </el-radio-group>
-              </el-form-item>
-              <el-form-item label="任务内容" prop="task_description">
-                <el-input type="textarea" :rows="6" v-model="taskForm.task_description"
-                  prefix-icon="el-icon-edit"></el-input>
-              </el-form-item>
-
-            </el-form>
-
-            <template #footer>
-              <span class="dialog-footer">
-                <el-button @click="addDialogVisible = false">返回</el-button>
-                <el-button type="primary" @click="submitForm()">提交</el-button>
-              </span>
-            </template>
-          </el-dialog>
-        </div>
-
-        <!-- 完成任务确认对话框 -->
-        <el-dialog class="comfirm-dialog" v-model="taskCompleteVisible" width="250px" center :modal="false"
-          :lock-scroll="false" :append-to-bod="true" style="border-radius: 5px;">
-          <template #default>
-            <p style="text-align: center;">已完成任务？</p>
-          </template>
-          <template #footer>
-            <div class="dialog-footer">
-              <el-button @click="taskCompleteVisible = false">返回</el-button>
-              <el-button type="primary" @click="handleCompleteTask">
-                确认
-              </el-button>
-            </div>
-          </template>
-        </el-dialog>
-
-        <!-- 编辑任务对话框 -->
-        <div class="add-task-dialog">
-          <el-dialog :modal="false" :close-on-click-modal="false" v-model="editTaskVisible" title="编辑你的任务" width="500px"
-            center :append-to-body="true" :lock-scroll="false" style="border-radius: 5px;">
-            <!-- 添加任务表单 -->
-            <el-form :hide-required-asterisk="true" :model="editorForm" :rules="rules" ref="editorFormRef"
-              label-width="80px" style="max-width: 450px; margin: 0 auto;">
-              <el-form-item label="任务名称" prop="task_title">
-                <el-input v-model="editorForm.task_title" prefix-icon="el-icon-edit"></el-input>
-              </el-form-item>
-
-              <el-form-item label="预估时间" prop="estimatedTime">
-                <el-date-picker v-model="editorForm.estimatedTime" type="datetimerange" start-placeholder="Start date"
-                  end-placeholder="End date" value-format="x" />
-              </el-form-item>
-              <el-form-item prop="priority">
-                <el-radio-group v-model="editorForm.priority" label="请选择优先级">
-                  <el-radio :label="1"></el-radio>
-                  <el-radio :label="2"></el-radio>
-                  <el-radio :label="3"></el-radio>
-                </el-radio-group>
-              </el-form-item>
-              <el-form-item label="任务内容" prop="task_description">
-                <el-input type="textarea" :rows="6" v-model="editorForm.task_description"
-                  prefix-icon="el-icon-edit"></el-input>
-              </el-form-item>
-            </el-form>
-            <template #footer>
-              <span class="dialog-footer">
-                <el-button @click="editTaskVisible = false">返回</el-button>
-                <el-button type="primary" @click="editTask()">提交</el-button>
-              </span>
-            </template>
-          </el-dialog>
-        </div>
-
-        <!-- 删除任务对话框 -->
-        <el-dialog class="delete-dialog" v-model="taskDeleteVisible" width="200px" center :modal="false"
-          :lock-scroll="false" :append-to-bod="true" style="border-radius: 5px;">
-          <template #default>
-            <p style="text-align: center;">删除任务？</p>
-          </template>
-          <template #footer>
-            <div class="dialog-footer">
-              <el-button @click="taskDeleteVisible = false">返回</el-button>
-              <el-button type="primary" @click="handleDeleteTask">
-                确认
-              </el-button>
-            </div>
-          </template>
-        </el-dialog>
-      </div>
     </div>
     <!-- 向taskDetail组件传递被选中的任务id,接受taskDetail组件的任务详情 -->
-    <TaskDetail :selectTaskId="selectTaskId" @task-detail="taskDetail"></TaskDetail>
 
+
+  </div>
+  <div class="alter-task-staus">
+    <!-- 添加任务弹出层-->
+    <div class="add-task-dialog">
+      <el-dialog :modal="false" :close-on-click-modal="false" v-model="addDialogVisible" title="添加你的任务" width="500px"
+        center :append-to-body="true" :lock-scroll="false" style="border-radius: 5px;">
+        <!-- 添加任务表单 -->
+        <el-form :hide-required-asterisk="true" :model="taskForm" :rules="rules" ref="taskFormRef" label-width="80px"
+          style="max-width: 450px; margin: 0 auto;">
+          <el-form-item label="任务名称" prop="task_title">
+            <el-input v-model="taskForm.task_title" prefix-icon="el-icon-edit"></el-input>
+          </el-form-item>
+
+          <el-form-item label="预估时间" prop="estimatedTime">
+            <el-date-picker v-model="taskForm.estimatedTime" type="datetimerange" start-placeholder="开始时间"
+              end-placeholder="结束时间" value-format="x" />
+          </el-form-item>
+          <el-form-item prop="priority">
+            <el-radio-group v-model="taskForm.priority" label="请选择优先级">
+              <el-radio :label="1"></el-radio>
+              <el-radio :label="2"></el-radio>
+              <el-radio :label="3"></el-radio>
+            </el-radio-group>
+          </el-form-item>
+          <el-form-item label="任务内容" prop="task_description">
+            <el-input type="textarea" :rows="6" v-model="taskForm.task_description" prefix-icon="el-icon-edit"></el-input>
+          </el-form-item>
+
+        </el-form>
+
+        <template #footer>
+          <span class="dialog-footer">
+            <el-button @click="addDialogVisible = false">返回</el-button>
+            <el-button type="primary" @click="submitForm()">提交</el-button>
+          </span>
+        </template>
+      </el-dialog>
+    </div>
+
+    <!-- 完成任务确认对话框 -->
+    <el-dialog class="comfirm-dialog" v-model="taskCompleteVisible" width="250px" center :modal="false"
+      :lock-scroll="false" :append-to-bod="true" style="border-radius: 5px;">
+      <template #default>
+        <p style="text-align: center;">已完成任务？</p>
+      </template>
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="taskCompleteVisible = false">返回</el-button>
+          <el-button type="primary" @click="handleCompleteTask">
+            确认
+          </el-button>
+        </div>
+      </template>
+    </el-dialog>
+
+    <!-- 编辑任务对话框 -->
+    <div class="add-task-dialog">
+      <el-dialog :modal="false" :close-on-click-modal="false" v-model="editTaskVisible" title="编辑你的任务" width="500px"
+        center :append-to-body="true" :lock-scroll="false" style="border-radius: 5px;">
+        <!-- 添加任务表单 -->
+        <el-form :hide-required-asterisk="true" :model="editorForm" :rules="rules" ref="editorFormRef" label-width="80px"
+          style="max-width: 450px; margin: 0 auto;">
+          <el-form-item label="任务名称" prop="task_title">
+            <el-input v-model="editorForm.task_title" prefix-icon="el-icon-edit"></el-input>
+          </el-form-item>
+
+          <el-form-item label="预估时间" prop="estimatedTime">
+            <el-date-picker v-model="editorForm.estimatedTime" type="datetimerange" start-placeholder="Start date"
+              end-placeholder="End date" value-format="x" />
+          </el-form-item>
+          <el-form-item prop="priority">
+            <el-radio-group v-model="editorForm.priority" label="请选择优先级">
+              <el-radio :label="1"></el-radio>
+              <el-radio :label="2"></el-radio>
+              <el-radio :label="3"></el-radio>
+            </el-radio-group>
+          </el-form-item>
+          <el-form-item label="任务内容" prop="task_description">
+            <el-input type="textarea" :rows="6" v-model="editorForm.task_description"
+              prefix-icon="el-icon-edit"></el-input>
+          </el-form-item>
+        </el-form>
+        <template #footer>
+          <span class="dialog-footer">
+            <el-button @click="editTaskVisible = false">返回</el-button>
+            <el-button type="primary" @click="editTask()">提交</el-button>
+          </span>
+        </template>
+      </el-dialog>
+    </div>
+
+    <!-- 删除任务对话框 -->
+    <el-dialog class="delete-dialog" v-model="taskDeleteVisible" width="200px" center :modal="false" :lock-scroll="false"
+      :append-to-bod="true" style="border-radius: 5px;">
+      <template #default>
+        <p style="text-align: center;">删除任务？</p>
+      </template>
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="taskDeleteVisible = false">返回</el-button>
+          <el-button type="primary" @click="handleDeleteTask">
+            确认
+          </el-button>
+        </div>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <style lang='scss' scoped>
+.left {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  background-color: #f6f2eb;
+}
+
+.el-calendar {
+  flex: 4;
+  border-radius: 5px;
+  margin: 15px;
+  width: 300px;
+  --el-calendar-cell-width: 35px;
+}
+
 .container {
   background-color: #f6f2eb;
   display: flex;
   flex-direction: row;
   position: relative;
   justify-content: flex-start;
-
-  .el-dialog {
-    .time-input {
-      display: inline-block;
-      width: 150px;
-      vertical-align: middle;
-    }
-
-    .el-form-item__label {
-      display: none;
-    }
-
-  }
+  max-width: 1200px;
+  margin: 0 auto;
 
   .content {
     margin: 10px 15px;
@@ -757,5 +766,19 @@ const handleEditTask = async () => {
     left: 50%;
     transform: translate(-50%, 0);
   }
-}
+}  
+.el-dialog {
+    .time-input {
+      display: inline-block;
+      width: 150px;
+      vertical-align: middle;
+    }
+
+    .el-form-item__label {
+      display: none;
+    }
+
+  }
+
+
 </style>

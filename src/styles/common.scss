@@ -3,7 +3,11 @@ $bgcolor: #f2f5f7;
 * {
     box-sizing: border-box;
 }
-
+@mixin flex($layout){
+  display: flex;
+  justify-content: $layout;
+  align-items: $layout;
+}
 html{
     height: 100%;
     font-size: 14px;
@@ -39,8 +43,9 @@ input{
     outline: none;
 }
 .container{
-    width: 1500px;
-    margin:0 auto;
+    max-width: 1200px;
+    min-width: 900px;
+    margin: 0 auto;
     overflow: hidden;
     
 }

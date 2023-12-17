@@ -25,35 +25,23 @@ const router = createRouter({
           component: Home
         },
         {
+          path: 'favorites',
+          name: 'userCollection',
+          component: () => import('@/view/favorites/index.vue')
+        },
+        {
+              path: 'notes',
+              name: 'userOpus',
+              component: () => import('@/view/notes/index.vue')
+            },
+        {
           path: `user`,
           name: 'user',
           component: User,
-          children: [
-            {
-              path: '',
-              name: 'userIndex',
-              component: () => import('@/view/User/views/UserIndex.vue')
-            },
-            {
-              path: 'collection',
-              name: 'userCollection',
-              component: () => import('@/view/User/views/UserCollection.vue')
-            },
-            {
-              path: 'opus',
-              name: 'userOpus',
-              component: () => import('@/view/User/views/UserOpus.vue')
-            },
-            {
-              path: 'setting',
-              name: 'userSetting',
-              component: () => import('@/view/User/views/UserSetting.vue')
-            }
-          ]
         },
         {
           path: 'publish',
-          component:Publish
+          component: Publish
         },
 
         {
@@ -76,7 +64,7 @@ const router = createRouter({
 
     },
     {
-      path: '/detail',
+      path: '/detail/:post_id',
       component: () => import('@/view/Detail/index.vue')
     }
   ],

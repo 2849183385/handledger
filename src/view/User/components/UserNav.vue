@@ -92,16 +92,19 @@ console.log(imgUrl.value)
 <style lang='scss' scoped>
 .h-inner {
   .container {
+    border-radius: 20px 20px 0 0;
     overflow: hidden;
-    height: 200px;
+    height: 250px;
+    width: 1120px;
     background-image: url(src/assets/images/banner1.jpg);
     position: relative;
-
+    display: flex;
+    flex-direction: column-reverse;
     .user {
       display: flex;
       height: 160px;
       margin: 20px 30px 20px 20px;
-      flex-direction: row-reverse;
+      flex-direction: row;
 
       .user-avatar {
 
@@ -138,12 +141,10 @@ console.log(imgUrl.value)
       .user-basic {
         margin: 80px 50px 0 0;
         width: 500px;
-        position: relative;
-
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
         span {
-          position: absolute;
-          right: 0px;
-          top: 0;
           display: inline-block;
           margin-right: 5px;
           font-weight: 700;
@@ -154,9 +155,6 @@ console.log(imgUrl.value)
         }
 
         .user-signature {
-          position: absolute;
-          bottom: 0;
-
           #h-sign {
             //聚焦后外边框
             outline: none;
@@ -170,10 +168,7 @@ console.log(imgUrl.value)
             line-height: 26px;
             height: 35px;
             padding: 0 5px;
-            position: relative;
-            top: -1px;
             width: 500px;
-            text-align: right;
           }
 
           #h-sign:hover {

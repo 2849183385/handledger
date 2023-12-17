@@ -35,24 +35,20 @@ const userStore = useUserStore();
     height: 90px;
     margin: 0 auto;
     display: flex;
+    justify-content: center;
     align-items: center;
-
     .header-nav {
         flex: 3;
-        width: 820px;
+       
         display: flex;
-        padding-left: 40px;
         z-index: 998;
 
         li {
             flex: 1;
-            margin-right: 40px;
-            width: 38px;
             text-align: center;
-
             a {
                 display: block;
-                font-size: 30px;
+                font-size: 2em;
                 line-height: 32px;
                 height: 32px;
                 display: inline-block;

@@ -48,7 +48,8 @@ overflow:hidden;
 
 .el-breadcrumb {
   font-size: 20px;
-}}
+}
+}
 .secBody {
   h1.title {
     margin: 0;

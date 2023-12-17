@@ -51,6 +51,17 @@ export const updateAvatarAPI = (user_id,avatar) => {
     })
 }
 
+//获取用户作品数据
+export const getLedgerIdAPI = (user_id) => {
+    return request({
+        url: '/user/getWorks',
+        method: 'get',
+        params: {
+            user_id
+        }
+    })
+}
+
 //获取用户点赞数据
 export const getLikesIdAPI = (user_id) => {
     return request({

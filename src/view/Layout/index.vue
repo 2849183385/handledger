@@ -1,19 +1,22 @@
 <script setup>
-import LayoutFixed from './components/LayoutFixed.vue';
-import LayoutNav from './components/LayoutNav.vue'
-import LayoutHeader from './components/LayoutHeader.vue'
-import LayoutFooter from './components/LayoutFooter.vue';
+// import LayoutFixed from './components/LayoutFixed.vue';
+// import LayoutNav from './components/LayoutNav.vue'
+// import LayoutHeader from './components/LayoutHeader.vue'
+// import LayoutFooter from './components/LayoutFooter.vue';
+import AsideNav from './components/AsideNav.vue';
 
 </script>
 
 <template>
   
     <!-- 路由页面内容 -->
-    <LayoutFixed></LayoutFixed>
-    <LayoutNav></LayoutNav>
-    <LayoutHeader></LayoutHeader>
+    <!-- <LayoutFixed></LayoutFixed> -->
+    <!-- <LayoutNav></LayoutNav> -->
+    <!-- <LayoutHeader></LayoutHeader> -->
+    <AsideNav></AsideNav>
     <RouterView></RouterView>
-    <LayoutFooter></LayoutFooter>
+    <!-- <LayoutFooter></LayoutFooter> -->
+    
     <!-- backup回到顶部 -->
     <el-backtop :bottom="100">
       <div style=" height: 100%; width: 100%;">

@@ -37,6 +37,7 @@ console.log('taskDetail被渲染')
 </script>
 
 <template>
+  
   <div class="bg-box" v-show="taskDetail">
     <el-icon :color="completestaus">
       <CollectionTag />
@@ -72,19 +73,21 @@ console.log('taskDetail被渲染')
       </div>
     </div>
   </div>
+  
 </template>
 
 <style lang='scss' scoped>
+
+
 //任务细节样式
 .bg-box {
-  height: 400px;
-  max-width: 300px;
+  width: 300px;
   border-radius: 5px;
   background-color: rgb(255, 255, 255);
-  padding: 50px 15px 15px;
-  margin: 50px 30px 30px 30px;
+  padding: 25px 18px 15px;
+  margin: 25px 18px;
   position: relative;
-  flex: 1;
+  flex: 4;
   box-shadow: 14px 14px 20px #cbced1;
 
   &::before {
@@ -114,8 +117,8 @@ console.log('taskDetail被渲染')
     position: absolute;
     background-color: #ffffff00;
     top: -5px;
-    right: 15px;
-    font-size: 50px;
+    right: 5px;
+    font-size: 4rem;
   }
 
   .task-detail {
@@ -131,8 +134,8 @@ console.log('taskDetail被渲染')
       margin: 5px;
       border-radius: 5px;
       border: 1px gray solid;
-      height: 150px;
-      padding: 12px 5px;
+      height: 78px;
+      padding:  5px 0;
     }
 
     .el-text {
