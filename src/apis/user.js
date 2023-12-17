@@ -52,7 +52,7 @@ export const updateAvatarAPI = (user_id,avatar) => {
 }
 
 //获取用户点赞数据
-export const getLikesAPI = (user_id) => {
+export const getLikesIdAPI = (user_id) => {
     return request({
         url: '/user/getLikes',
         method: 'get',
@@ -63,9 +63,20 @@ export const getLikesAPI = (user_id) => {
 }
 
 //获取用户收藏数据
-export const getFavoritesAPI = (user_id) => {
+export const getFavoritesIdAPI = (user_id) => {
     return request({
         url: '/user/getFavorites',
+        method: 'get',
+        params: {
+            user_id
+        }
+    })
+}
+
+//获取用户作品数据
+export const getPostsAPI = (user_id) => {
+    return request({
+        url: '/user/getPosts',
         method: 'get',
         params: {
             user_id

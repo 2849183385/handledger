@@ -27,12 +27,12 @@ export const useLedgerStore = defineStore("ledger", () => {
      */
     const getComments = async (id, limit) => {
         let offset = null
-        console.log(offset)
+        // console.log(offset)
         try {
-            console.log(id, limit, offset)
-            console.log(ledgerInfo.value.commentsInfo)
+            // console.log(id, limit, offset)
+            // console.log(ledgerInfo.value.commentsInfo)
             offset = ledgerInfo.value.commentsInfo ? ledgerInfo.value.commentsInfo.length : 0
-            console.log(id, limit, offset)
+            // console.log(id, limit, offset)
             const res = await getCommentAPI(id, limit, offset)
             //评论数据存储到本地
             ledgerInfo.value.commentsInfo = ledgerInfo.value.commentsInfo ? (ledgerInfo.value.commentsInfo.concat(res.data.data)) : res.data.data
@@ -46,7 +46,7 @@ export const useLedgerStore = defineStore("ledger", () => {
     const getLatestComment = async (post_id) => {
         try {
             const res = await getLatestCommentAPI(post_id)
-            console.log(res.data.data)
+            // console.log(res.data.data)
             //将获取的最新评论数据插入到本地评论数据顶部
            
             ledgerInfo.value.commentsInfo.unshift(...res.data.data)
@@ -69,10 +69,10 @@ export const useLedgerStore = defineStore("ledger", () => {
         for (let i = 0; i < ledgerInfo.value.commentsInfo.length; i++) {
             if (ledgerInfo.value.commentsInfo[i].comment_id === id) {
                 offset = ledgerInfo.value.commentsInfo[i].replies ? ledgerInfo.value.commentsInfo[i].replies.length : 0
-                console.log(offset)
+                // console.log(offset)
                 //找到评论id
                 const res = await getReplyAPI(id, limit, offset)
-                console.log(res.data.data)
+                // console.log(res.data.data)
                 if (res.data.data === '') {
                     console.log('没有更多数据')
                     return
@@ -80,7 +80,7 @@ export const useLedgerStore = defineStore("ledger", () => {
                 //将返回结果添加到该评论的回复中
                 //判断是否存在回复内容,如果存在则原数据和返回数据两数组合并,否则直接赋值
                 ledgerInfo.value.commentsInfo[i].replies = ledgerInfo.value.commentsInfo[i].replies ? (ledgerInfo.value.commentsInfo[i].replies.concat(res.data.data)) : res.data.data
-                console.log(res.data.data[0].reply_count)
+                // console.log(res.data.data[0].reply_count)
                 //回复数量也进行更新
                 // ledgerInfo.value.commentsInfo[i].reply_count = res.data.data[0].reply_count
                 break
@@ -99,15 +99,15 @@ export const useLedgerStore = defineStore("ledger", () => {
             //找到被回复的评论
                 if (ledgerInfo.value.commentsInfo[i].comment_id === comment_id) {
                     //赋值
-                    console.log(res.data.data);
-                    console.log(ledgerInfo.value.commentsInfo[i].replies)
+                    // console.log(res.data.data);
+                    // console.log(ledgerInfo.value.commentsInfo[i].replies)
                     if (ledgerInfo.value.commentsInfo[i].replies) {
                        ledgerInfo.value.commentsInfo[i].replies.unshift(...res.data.data) 
                     } else {
                         ledgerInfo.value.commentsInfo[i].replies = res.data.data
                     }
                      
-                    console.log(ledgerInfo.value.commentsInfo[i].replies)
+                    // console.log(ledgerInfo.value.commentsInfo[i].replies)
 
                     //回复数量也进行更新
                     ledgerInfo.value.commentsInfo[i].reply_count = res.data.data[0].reply_count
@@ -124,12 +124,12 @@ export const useLedgerStore = defineStore("ledger", () => {
         const res = await getLikeAPI(id, method)
         switch (method) {
             case 'post':
-                console.log('post',res.data.data)
+                // console.log('post',res.data.data)
                 ledgerInfo.value.article.post_likes_count=res.data.data.post_likes_count
                 break;
             case 'comment':
-                console.log('comment', res.data.data)
-                console.log(ledgerInfo.value.commentsInfo)
+                // console.log('comment', res.data.data)
+                // console.log(ledgerInfo.value.commentsInfo)
                 for (let i = 0; i < ledgerInfo.value.commentsInfo.length; i++) {
                     if (ledgerInfo.value.commentsInfo[i].comment_id === id) {
                         // console.log(ledgerInfo.value.commentsInfo[i])
@@ -146,15 +146,15 @@ export const useLedgerStore = defineStore("ledger", () => {
                 for (let i = 0; i < ledgerInfo.value.commentsInfo.length; i++) {
                    
                     if (ledgerInfo.value.commentsInfo[i].comment_id === comment_id) {
-                        console.log(ledgerInfo.value.commentsInfo[i])
+                        // console.log(ledgerInfo.value.commentsInfo[i])
                         for (let j = 0; j < ledgerInfo.value.commentsInfo[i].replies.length; j++){
 
                             if (ledgerInfo.value.commentsInfo[i].replies[j].reply_id === id) {
-                                console.log(ledgerInfo.value.commentsInfo[i].replies[j])
-                                console.log(ledgerInfo.value.commentsInfo[i].replies[j].reply_likes_count)
+                                // console.log(ledgerInfo.value.commentsInfo[i].replies[j])
+                                // console.log(ledgerInfo.value.commentsInfo[i].replies[j].reply_likes_count)
                                 ledgerInfo.value.commentsInfo[i].replies[j].reply_likes_count = res.data.data.reply_likes_count
-                                console.log(ledgerInfo.value.commentsInfo[i].replies[j].reply_likes_count)
-                                console.log(res.data.data.reply_likes_count)
+                                // console.log(ledgerInfo.value.commentsInfo[i].replies[j].reply_likes_count)
+                                // console.log(res.data.data.reply_likes_count)
                                return
                            }
                        }
@@ -178,14 +178,14 @@ export const useLedgerStore = defineStore("ledger", () => {
                 //找到要被删除的评论
                 for (let i = 0; i < ledgerInfo.value.commentsInfo.length; i++) {
                     if (ledgerInfo.value.commentsInfo[i].comment_id === comment_id) {
-                        console.log(comment_id);
-                        console.log(ledgerInfo.value.commentsInfo);
+                        // console.log(comment_id);
+                        // console.log(ledgerInfo.value.commentsInfo);
                         ledgerInfo.value.commentsInfo.splice(i, 1) 
-                        console.log(ledgerInfo.value.commentsInfo);
+                        // console.log(ledgerInfo.value.commentsInfo);
                         const res = await deleteCommentAPI(comment_id, method)
                         //删除后。评论总数减一
                         ledgerInfo.value.article.post_comment_count = ledgerInfo.value.article.post_comment_count-1
-                        console.log(res);
+                        // console.log(res);
                         ElMessage({
                             type: 'success',
                             message: res.data.message
@@ -195,7 +195,7 @@ export const useLedgerStore = defineStore("ledger", () => {
                 }
                 break;
             case 'reply':
-                console.log(method)
+                // console.log(method)
                 //找到要被删除的回复
                 for (let i = 0; i < ledgerInfo.value.commentsInfo.length; i++) {
                     if (ledgerInfo.value.commentsInfo[i].comment_id === comment_id) {

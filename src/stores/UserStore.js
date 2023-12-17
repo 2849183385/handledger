@@ -1,6 +1,6 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
-import { loginAPI, getUserInfoAPI, getLikesAPI, getFavoritesAPI } from "@/apis/user";
+import { loginAPI, getUserInfoAPI, getLikesIdAPI, getFavoritesIdAPI, getPostsAPI } from "@/apis/user";
 
 export const useUserStore = defineStore("user", () => {
     // 1. 定义管理用户数据的state
@@ -21,22 +21,26 @@ export const useUserStore = defineStore("user", () => {
     // const setUserInfo = (obj) => {
     //     userInfo.value = obj
     // }
-    const getLikes = async (id) => {
+    const getLikesId = async (id) => {
         try {
-        const res = await getLikesAPI(id)
-        userInfo.value.likes=res.data.data
+        const res = await getLikesIdAPI(id)
+        userInfo.value.likesId=res.data.data
         } catch (e) {
             console.log(e)
-        }
-        
+        }  
     }
-    const getFavorites=async(user_id)=>{
+    const getFavoritesId=async(user_id)=>{
         try{
-            const res=await getFavoritesAPI(user_id)
-            userInfo.value.favorites=res.data.data
+            const res=await getFavoritesIdAPI(user_id)
+            userInfo.value.favoritesId=res.data.data
         }catch(e){
             console.log(e)
         }
+    }
+
+    const getPosts = async (user_id) => {
+        const res = await getPostsAPI(user_id)
+        userInfo.value.posts=res.data.data
     }
     const token = ref("")
     //设置token
@@ -49,8 +53,9 @@ export const useUserStore = defineStore("user", () => {
         removeToken,
         userInfo,
         getUserInfo,
-        getLikes,
-        getFavorites,
+        getLikesId,
+        getFavoritesId,
+        getPosts,
         cleanUserInfo
         // setUserInfo
     }

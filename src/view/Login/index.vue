@@ -76,8 +76,8 @@ const doLogin = async () => {
         type:'success',
         message: '登录成功'
          })
-        await userStore.getLikes(userStore.userInfo.user_id)
-        await userStore.getFavorites(userStore.userInfo.user_id)
+        await userStore.getLikesId(userStore.userInfo.user_id)
+        await userStore.getFavoritesId(userStore.userInfo.user_id)
       // Router.replace('/')
       Router.push('/')
       } catch (error) {
