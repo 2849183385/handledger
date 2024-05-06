@@ -1,5 +1,5 @@
 <script setup>
-import ItemInfo from '@/components/ItemInfo.vue';
+// import ItemInfo from '@/components/ItemInfo.vue';
 import UserInfo from './components/UserInfo.vue'
 import UserNav from './components/UserNav.vue'
 // import BodyNav from './components/BodyNav.vue';

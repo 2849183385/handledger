@@ -537,8 +537,8 @@ const handleEditTask = async () => {
             <el-date-picker v-model="editorForm.estimatedTime" type="datetimerange" start-placeholder="Start date"
               end-placeholder="End date" value-format="x" />
           </el-form-item>
-          <el-form-item prop="priority">
-            <el-radio-group v-model="editorForm.priority" label="请选择优先级">
+          <el-form-item label="请选择优先级" prop="priority" >
+            <el-radio-group v-model="editorForm.priority" >
               <el-radio :label="1"></el-radio>
               <el-radio :label="2"></el-radio>
               <el-radio :label="3"></el-radio>
@@ -655,10 +655,7 @@ const handleEditTask = async () => {
       position: relative;
       padding: 7px 20px;
 
-      .el-popover {
-        .el-input {}
-
-      }
+      
 
       .el-button {
         position: absolute;

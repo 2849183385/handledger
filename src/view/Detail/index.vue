@@ -339,12 +339,13 @@ const deleteComment = async () => {
                             commentsInfo.value[i].replies.splice(j, 1)
                             await deleteCommentAPI(comment_id, method, reply_id)
                             //删除后。评论总数减一
-                            const res = article.value.post_comment_count = article.value.post_comment_count - 1
+                            // const res = article.value.post_comment_count = article.value.post_comment_count - 1
                             ElMessage({
                                 type: 'success',
-                                message: res.data.message
+                                message: '删除成功'
                             })
                             deleteDialogVisible.value = false
+                            // console.log(res);
                             return
                         }
                     }
@@ -494,7 +495,8 @@ onMounted(async () => {
                                         <div class="content">
                                             <div class="commment-auther">{{ item.nick_name }}</div>
                                             <div class="comment-text">
-                                                <span v-show="item.replied_user_nick_name !== null" style="color:#fec887;">
+                                                <span v-show="item.replied_user_nick_name !== null"
+                                                    style="color:#fec887;">
                                                     回复 {{ item.replied_user_nick_name }}：
                                                 </span> {{ item.reply_content }}
                                             </div>
@@ -536,10 +538,11 @@ onMounted(async () => {
                     <el-text :truncated="true"
                         style="color: gray;width:90%;">{{ atUserInfo?.comment_content || atUserInfo?.reply_content }}</el-text>
                 </div>
-                <input class="comment-input" v-model="comment_value" @focus="isFocued = true" type="textarea" ref="inputRef"
-                    placeholder="说点啥吧" @keydown.enter="commentSubmit" />
+                <input class="comment-input" v-model="comment_value" @focus="isFocued = true" type="textarea"
+                    ref="inputRef" placeholder="说点啥吧" @keydown.enter="commentSubmit" />
                 <div class="other">
-                    <el-button text @click="likeSubmit({ id:post_id, method: 'post' })"><i class="iconfont icon-like-true"
+                    <el-button text @click="likeSubmit({ id:post_id, method: 'post' })"><i
+                            class="iconfont icon-like-true"
                             :class="{ 'red': likeStatus(post_id, 'post', likesId) }"></i><span>{{ article?.post_likes_count }}</span></el-button>
                     <el-button text @click="atUser()"> <i
                             class="iconfont icon-comment_light"></i><span>{{ article.post_comment_count }}</span></el-button>
@@ -549,7 +552,8 @@ onMounted(async () => {
                     <el-button text> <i class="iconfont icon-zhuanfa" /></el-button>
                 </div>
                 <div class="comment-btn">
-                    <el-button type="primary" @click="commentSubmit" :disabled="comment_value?.trim() == ''">发送</el-button>
+                    <el-button type="primary" @click="commentSubmit"
+                        :disabled="comment_value?.trim() == ''">发送</el-button>
                     <el-button @click="cancel">返回</el-button>
                 </div>
             </div>
@@ -557,7 +561,7 @@ onMounted(async () => {
         <!-- 删除对话框 -->
 
     </div>
-    <el-dialog v-model="deleteDialogVisible" width="230px" :align-center="true" :center="true"
+    <el-dialog v-model="deleteDialogVisible" width="230px" :align-center="true" :center="true" :modal="false" :draggable="true"
         style=" border-radius: 20px;">
         <span>你想要删除这条评论吗？</span>
         <template #footer>

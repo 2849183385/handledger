@@ -17,9 +17,15 @@ const getPosts = async() => {
   const res = await getPostsAPI(user_id)
     loading.value = false
   posts.value = res.data.data
+  console.log(posts.value);
+}
+const deleteSuccess=()=>{
+  getPosts()
+  // console.log(111);
+  // console.log(posts.value);
 }
 onMounted(() => {
-  console.log(111);
+  // console.log(posts.value);
  getPosts()
   // console.log(imageArray);
 })
@@ -37,7 +43,7 @@ onMounted(() => {
       <div class="posts" v-else>
         <div class="item-list" v-for="item in posts" :key="item">
           <!-- 向子组件传参 -->
-        <ItemInfo :item="item"></ItemInfo>
+        <ItemInfo :item="item" @delete="deleteSuccess"></ItemInfo>
       </div>
         <div class="upload">
           <el-icon @click="router.push('/publish')">

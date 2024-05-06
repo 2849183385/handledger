@@ -122,9 +122,9 @@ watch(isLogin, () => {
 <template>
   <div class="container" v-loading="loading">
     <div class="header">
-      <div class="logo">
+      <!-- <div class="logo">
         <span>chan</span>
-      </div>
+      </div> -->
     </div>
 
     <div class="main">

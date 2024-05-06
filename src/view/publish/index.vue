@@ -1,10 +1,11 @@
 <script setup >
 import ImageCompressor from 'image-compressor.js'
-import ElMessage from 'element-plus'
+import { ElMessage } from 'element-plus';
 import { ref, watch } from 'vue'
 import { Plus } from '@element-plus/icons-vue'
 import { pulishLedgerAPI } from '@/apis/ledger'
 import { useUserStore } from '@/stores/userStore'
+// import router from '@/router';
 // import { imgZip } from '@/utils/imageSrc'
 const userStore = useUserStore()
 const { userInfo: { user_id } } = userStore
@@ -12,7 +13,7 @@ const fileList = ref([])
 // const imgUrl = ref('')
 watch(fileList, async () => {
     console.log('fileList', fileList.value)
-    console.log('fileList', fileList.value[0])
+    // console.log('fileList', fileList.value[0])
     // 把添加的图片压缩，转换成base64格式，然后赋值给form表单
     fileList.value.forEach(async (item) => {
         await new ImageCompressor(item.raw, {
@@ -49,10 +50,23 @@ const form = ref({
 const onSubmit = () => {
     console.log(form.value)
     //将数组转化为字符串，发送给后端
-    form.value.image_url=form.value.image_url.join('&')
+    form.value.image_url = form.value.image_url.join('&')
+    // console.log(form.value.image_url);
+    // console.log(form.value.image_url.join('&'));
     pulishLedgerAPI(form.value, user_id).then(() => {
-       ElMessage.success('发布成功')
+        console.log('111111');
+        ElMessage.success('发布成功')
+        console.log(form.value);
+        // form.value = null
+        form.value = {
+            title: '',
+            content: '',
+            image_url: [],
+            permission: 0
+        }
+        console.log(form.value);
     })
+
 }
 </script>
 

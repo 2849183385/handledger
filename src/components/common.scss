@@ -1,0 +1,6 @@
+@mixin flex($layout){
+  display: flex;
+  justify-content: $layout;
+  align-items: $layout;
+}
+$bgcolor: pink;

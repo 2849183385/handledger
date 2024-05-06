@@ -2,12 +2,12 @@
 import { ref, onMounted } from 'vue';
 import ItemInfo from '@/components/ItemInfo.vue'
 import { useUserStore } from '@/stores/userStore';
-import { getFavoritesAPI } from '@/apis/ledger';
+import { getFavoritesIdAPI } from '@/apis/user';
 const userStore = useUserStore();
 const { user_id } = userStore.userInfo
 const favoritesList = ref([])
 const getfavorites = async () => {
-  const res = await getFavoritesAPI(user_id)
+  const res = await getFavoritesIdAPI(user_id)
   console.log(res.data.data);
   favoritesList.value = res.data.data
   console.log(favoritesList.value);

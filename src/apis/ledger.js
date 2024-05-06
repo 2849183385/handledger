@@ -35,7 +35,16 @@ export function pulishLedgerAPI(obj, user_id) {
     }
   })
 }
-
+//删除文章
+export function deleteLedgerAPI(post_id) {
+  return request({
+    url: '/ledger/deleteLedger',
+    method: 'post',
+    data: {
+      post_id
+    }
+  })
+}
 //发表评论
 export function pulishCommentAPI(content, post_id, user_id) {
   return request({

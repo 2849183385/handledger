@@ -4,7 +4,7 @@
 // import LayoutHeader from './components/LayoutHeader.vue'
 // import LayoutFooter from './components/LayoutFooter.vue';
 import AsideNav from './components/AsideNav.vue';
-
+// import MenuBtn from '@/components/MenuBtn.vue';
 </script>
 
 <template>
@@ -14,6 +14,7 @@ import AsideNav from './components/AsideNav.vue';
     <!-- <LayoutNav></LayoutNav> -->
     <!-- <LayoutHeader></LayoutHeader> -->
     <AsideNav></AsideNav>
+    <!-- <MenuBtn></MenuBtn> -->
     <RouterView></RouterView>
     <!-- <LayoutFooter></LayoutFooter> -->
     

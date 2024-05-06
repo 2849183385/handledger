@@ -110,10 +110,10 @@ const onSubmit = async () => {
             修改信息
         </el-button>
     </div>
-    <el-dialog :lock-scroll="false"  :append-to-bod="true" v-model="dialogFormVisible" title="用户信息"
-        draggable center :close-on-click-modal="false" width="500px">
-        <el-form style="max-height: 500px;" :hide-required-asterisk="true" :model="form" label-width="70px" :rules="rules"
-            ref="formRef" :lock-scroll="false" :append-to-bod="true">
+    <el-dialog :lock-scroll="false" :append-to-bod="true" v-model="dialogFormVisible" title="用户信息" :modal="false" draggable
+        center :close-on-click-modal="false" width="500px">
+        <el-form style="max-height: 500px;" :hide-required-asterisk="true" :model="form" label-width="70px"
+            :rules="rules" ref="formRef" :lock-scroll="false" :append-to-bod="true">
             <el-form-item label="昵称" prop="nick_name">
                 <el-input v-model="form.nick_name" type="text" />
             </el-form-item>
@@ -135,8 +135,8 @@ const onSubmit = async () => {
             </el-form-item>
             <el-form-item label="出生日期" prop="user_brithday">
                 <el-col :span="11">
-                    <el-date-picker v-model="form.user_brithday" type="date" placeholder="Pick a date" format="YYYY/MM/DD"
-                        value-format="YYYY-MM-DD" style="width: 100%" />
+                    <el-date-picker v-model="form.user_brithday" type="date" placeholder="Pick a date"
+                        format="YYYY/MM/DD" value-format="YYYY-MM-DD" style="width: 100%" />
                 </el-col>
             </el-form-item>
             <el-form-item label="个性签名" prop="user_motto">

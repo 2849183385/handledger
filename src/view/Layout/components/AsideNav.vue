@@ -36,8 +36,8 @@ const routePath = routes.path
                 <img src="https://cube.elemecdn.com/e/fd/0fc7d20532fdaf769a25683617711png.png"/>
             </el-avatar>
         </div> -->
-        <el-menu :default-active='routePath' :collapse="isCollapse" @open="handleOpen"  class="el-menu-vertical"
-            @close="handleClose" :router="true">
+        <el-menu :default-active='routePath' :collapse="isCollapse" @open="handleOpen" class="el-menu-vertical"
+            :collapse-transition=false @close="handleClose" :router="true">
             <el-menu-item index="/">
                 <el-icon>
                     <House />
@@ -52,12 +52,16 @@ const routePath = routes.path
                 </el-icon>
                 <template #title>计划</template>
             </el-menu-item>
-             <el-menu-item index="/notes">
-                    <el-icon><Notebook /></el-icon>
-                    <template #title>笔迹</template>
-                </el-menu-item>
+            <el-menu-item index="/notes">
+                <el-icon>
+                    <Notebook />
+                </el-icon>
+                <template #title>笔迹</template>
+            </el-menu-item>
             <el-menu-item index="/favorites">
-               <el-icon><Star /></el-icon>
+                <el-icon>
+                    <Star />
+                </el-icon>
                 <template #title>我的收藏</template>
             </el-menu-item>
             <el-menu-item index="/publish">
@@ -68,21 +72,25 @@ const routePath = routes.path
             </el-menu-item>
             <el-menu-item index="/user">
                 <el-icon>
-                    <User/>
+                    <User />
                 </el-icon>
                 <template #title>个人中心</template>
             </el-menu-item>
-        <el-menu-item index="setting">
-            <el-icon><Setting/></el-icon>
-          <template #title>
-            <span>设置</span>
-          </template>
-        </el-menu-item>
-         <el-menu-item index="/help">
-                <el-icon><QuestionFilled /></el-icon>
-              <template #title>
-                <span>帮助</span>
-              </template>
+            <el-menu-item index="setting">
+                <el-icon>
+                    <Setting />
+                </el-icon>
+                <template #title>
+                    <span>设置</span>
+                </template>
+            </el-menu-item>
+            <el-menu-item index="/help">
+                <el-icon>
+                    <QuestionFilled />
+                </el-icon>
+                <template #title>
+                    <span>帮助</span>
+                </template>
             </el-menu-item>
         </el-menu>
         <el-switch v-model="value" class="mt-2" inline-prompt :active-action-icon="View" :inactive-action-icon="Hide" />
@@ -91,13 +99,15 @@ const routePath = routes.path
 
 <style lang='scss' scoped>
 //屏幕宽度不小于950时样式
-@media screen and (min-width:1350px){
+/*@media screen and (min-width:1350px){
    .el-menu-vertical:not(.el-menu--collapse) {
   width: 150px;
   min-height: 400px;
+}*/
+.el-icon{
+    font-size: 28px;
 }
 .aside-shell {
-    overflow: auto;
     padding: 50px 0 0 0;
     margin: 0 30px 0 0;
     display: flex;
@@ -137,11 +147,12 @@ const routePath = routes.path
         margin: 0 auto;
     }
 }
+/*
 } 
 @media screen and (max-width: 1350px) {
     .aside-shell{
         display: none;
     }
-}
+}*/
 
 </style>
