@@ -1,6 +1,8 @@
 <script setup >
 import { ref } from 'vue'
 import { useRoute } from 'vue-router';
+import { useUserStore } from '@/stores/userStore';
+import { useRouter } from 'vue-router';
 import {
     Hide, View,
     House,
@@ -8,6 +10,8 @@ import {
     ArrowRight,
     Setting,
 } from '@element-plus/icons-vue'
+import { ElMessage } from 'element-plus';
+const userStore = useUserStore()
 const isCollapse = ref(true)
 const handleOpen = (key, keyPath) => {
     console.log(key, keyPath)
@@ -15,7 +19,14 @@ const handleOpen = (key, keyPath) => {
 const handleClose = (key, keyPath) => {
     console.log(key, keyPath)
 }
+const router = useRouter()
 
+const loginOut = () => {
+    userStore.token = ''
+    router.push('/login')
+    ElMessage.success('退出成功')
+   
+}
 const value = ref(true)
 const routes = useRoute()
 const routePath = routes.path
@@ -93,7 +104,7 @@ const routePath = routes.path
                 </template>
             </el-menu-item>
         </el-menu>
-        <el-switch v-model="value" class="mt-2" inline-prompt :active-action-icon="View" :inactive-action-icon="Hide" />
+        <el-switch v-model="value" @change="loginOut" class="mt-2" inline-prompt :active-action-icon="View" :inactive-action-icon="Hide" />
     </div>
 </template>
 

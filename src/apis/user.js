@@ -21,6 +21,17 @@ export const registerAPI = ({ account, password }) => {
         }
     })
 }
+//修改密码
+export const updatePasswordAPI = ({ account, newPassword }) => {
+    return request({
+        url: '/user/updatePassword',
+        method: 'put',
+        data: {
+            account,
+            newPassword
+        }
+    })
+}
 
 export const getUserInfoAPI = (account) => {
     return request({

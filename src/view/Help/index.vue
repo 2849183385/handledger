@@ -20,7 +20,7 @@ import { ArrowRight } from '@element-plus/icons-vue'
           手帐这个词源于日本，它的本意只是一个随手携带、随时取用的本子。但其实手帐更是一个身兼数职的超强文具，它可以成为我们日程本、账本、计划本、剪贴本，甚至相册，总的来说一帐在手，应有尽有。
         </p>
         <div class="imgBox">
-          <img src="src/assets/images/article-1.png" alt="什么是手帐">
+          <img src="@/assets/images/article-1.png" alt="什么是手帐">
         </div>
         <p class="content">
           除了本子之外，广义上的手帐还包括写手帐所用的到的各种文具，如画笔、贴纸、胶带等等，在它们的帮助下可以让你的手帐既有内涵又有颜值。而在移动互联网时代，更有如时光手帐APP这样的优秀电子手帐产品，让你能够随时随地自由拼贴，随心创作，更可以打印成书，用心珍藏。
